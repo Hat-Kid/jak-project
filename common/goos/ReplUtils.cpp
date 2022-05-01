@@ -33,6 +33,7 @@ void ReplWrapper::print_welcome_message() {
   fmt::print("Run ");
   fmt::print(fmt::emphasis::bold | fg(fmt::color::cyan), "(lt)");
   fmt::print(" to connect to the local target.\n\n");
+  fmt::print("Test\n\n");
 }
 
 void ReplWrapper::set_history_max_size(size_t len) {
