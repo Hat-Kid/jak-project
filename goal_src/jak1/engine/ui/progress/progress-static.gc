@@ -155,6 +155,16 @@
 
 ;; TODO probably an enum.
 ;; maps level-info indices to the appropriate offset in *level-task-data*
+;; as our custom level has the index 22 in level-info.gc,
+;; it has to be in the 22nd spot in this array, the value has to be the index of the custom level's
+;; task info entry in the *level-task-data* array (citadel's index is 15,
+;; so the first custom level after that would be 16).
+;; if you want to have multiple levels account for one page in the progress menu,
+;; you add the same index twice and have multiple entries in *level-task-data*,
+;; this is how levels like spider cave keep track of progress in a single progress menu page.
+;;
+;; IMPORTANT: make sure that your level's index in level-info.gc is not bigger than the size
+;; of this array.
 (define *level-task-data-remap*
    (new 'static 'boxed-array :type int32
     0
@@ -178,6 +188,7 @@
     14
     15 ;; citadel?
     15 ;; finalboss?
+    16 ;; outset
     4 ;; demo?
     4 ;; intro?
     )
@@ -1349,6 +1360,53 @@
                              (game-text-id citadel-buzzer)
                              (game-text-id citadel-buzzer)
                              (game-text-id citadel-buzzer)
+                             (game-text-id zero)
+                             )
+                        )
+                   )
+              )
+          ;; the tasks for our custom level
+          ;; since this is the 16th (starting from zero) entry in this array,
+          ;; we have to add 16 as an entry to the *level-task-data-remap* array
+          ;; - level-name-id is the text id of the level name string
+          ;; - text-group-index is the index of the text file group that the level's strings reside in,
+          ;;   however, all text strings are merged into a single file so it shouldn't matter what you put here
+          ;; - nb-of-tasks determines the number of tasks this level-tasks-info holds
+          ;; - buzzer-task-index is the index of the scout fly task for this level
+          (new 'static 'level-tasks-info
+              :level-name-id (game-text-id outset-level-name)
+              :text-group-index 1
+              :nb-of-tasks 3
+              :buzzer-task-index 2
+              :task-info
+              (new 'static 'array task-info-data 8
+                   (new 'static 'task-info-data
+                        :task-id (game-task outset-gimmie)
+                        :task-name
+                        (new 'static 'array game-text-id 4
+                             (game-text-id outset-gimmie-task-name)
+                             (game-text-id outset-gimmie-task-name)
+                             (game-text-id outset-gimmie-task-name)
+                             (game-text-id zero)
+                             )
+                        )
+                   (new 'static 'task-info-data
+                        :task-id (game-task outset-spyro)
+                        :task-name
+                        (new 'static 'array game-text-id 4
+                             (game-text-id outset-spyro-task-name)
+                             (game-text-id outset-spyro-task-name)
+                             (game-text-id outset-spyro-task-name)
+                             (game-text-id zero)
+                             )
+                        )
+                   (new 'static 'task-info-data
+                        :task-id (game-task outset-buzzer)
+                        :task-name
+                        (new 'static 'array game-text-id 4
+                             (game-text-id outset-buzzer-task-name)
+                             (game-text-id outset-buzzer-task-name)
+                             (game-text-id outset-buzzer-task-name)
                              (game-text-id zero)
                              )
                         )

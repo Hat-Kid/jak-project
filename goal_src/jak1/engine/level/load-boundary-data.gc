@@ -918,6 +918,33 @@
   :bwd (display beach display)
   )
 
+;; these are the load boundaries to load in and display our custom level.
+;; the "top" field is the max of the boundary's y position, the "bot" field is the min.
+;; the "points" field defines two points with x and z coordinates, respectively.
+;; using these two fields, the load boundary's plane is generated.
+;;
+;; the "fwd" field determines what command to execute when the camera passes the boundary
+;; from the front, here, it loads in outset-island as level 0 and beach as level 1
+;; and loads village1 and beach if you pass it from the back.
+;;
+;; when you're trying to create your own boundaries,
+;; multiply your in-game coordinates (target or cam-trans in the bug report menu for example) by 4096.
+(static-load-boundary :flags ()
+  ;;   y top              y bottom
+  :top 109888.3072  :bot -88738.2016
+  ;;          point 0 x    point 0 z      point 1 x    point 1 z
+  :points (  -525614.2848 -459670.3232   -426332.9792 -435974.144 )
+  :fwd (load outset-island beach)
+  :bwd (load village1 beach)
+  )
+
+(static-load-boundary :flags ()
+  :top 109888.3072  :bot -88738.2016
+  :points (  -482900.7872 -575636.2752   -353807.1552 -533141.504 )
+  :fwd (display outset-island display)
+  :bwd (display outset-island #f)
+  )
+
 (static-load-boundary :flags ()
   :top 329926.1875  :bot 114555.8750
   :points (  4630288.0000 -14662835.0000   4776346.0000 -14281154.0000   5078574.5000 -14217605.0000 )

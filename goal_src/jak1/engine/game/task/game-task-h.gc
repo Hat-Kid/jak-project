@@ -127,5 +127,11 @@
   (plunger-lurker-hit 113)
   (leaving-misty 114)
   (assistant-village3 115)
-  (max 116)
+  ;; our new custom tasks
+  ;; adding a dummy task here because something in task-control.gc breaks otherwise...
+  (dummy 116)
+  (outset-gimmie 117)
+  (outset-spyro 118)
+  (outset-buzzer 119)
+  (max 120)
   )

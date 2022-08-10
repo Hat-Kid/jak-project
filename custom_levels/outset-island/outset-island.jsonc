@@ -1,0 +1,329 @@
+{
+  // The "in-game" name of the level. Should be lower case, with dashes (GOAL symbol name)
+  // the name of this file, and the folder this file is in must have the same name.
+  "long_name": "outset-island",
+  // The file name, should be upper case and 8 characters or less.
+  "iso_name": "OUTSET",
+  // The nickname, should be exactly 3 characters
+  "nickname": "OST", // 3 char name, all uppercase
+
+  // Background mesh file.
+  // Must have vertex colors. Use the blender cycles renderer, bake, diffuse, uncheck color,
+  // and bake to vertex colors. For now, only the first vertex color group is used, so make sure you
+  // only have 1.
+  "gltf_file": "custom_levels/outset-island/outset-island.glb",
+  "automatic_wall_detection": true,
+  "automatic_wall_angle": 45.0,
+
+  // if your mesh has triangles with incorrect orientation, set this to make all collision mesh triangles double sided
+  // this makes collision 2x slower and bigger, so only use if really needed
+  "double_sided_collide": false,
+
+  "actors" : [
+    {
+      "trans": [-386.74, 20.3, -153.64], // translation
+      "etype": "fuel-cell",  // actor type
+      "game_task": 117, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-386.74, 20.8, -153.64, 10], // bounding sphere
+      "lump": {
+        "name": "outset-fuel-cell-1",
+        "eco-info": ["int32", 6, 117]
+      }
+    },
+
+    {
+      "trans": [-434.81, 81.61, -196.44], // translation
+      "etype": "fuel-cell",  // actor type
+      "game_task": 118, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-434.81, 81.61, -196.44, 10], // bounding sphere
+      "lump": {
+        "name": "outset-fuel-cell-2",
+        "eco-info": ["int32", 6, 118]
+      }
+    },
+
+    {
+      "trans": [-308.21, 4.28, -370.47], // translation
+      "etype": "money",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-308.21, 4.28, -370.47, 10], // bounding sphere
+      "lump": {
+        "name": "outset-money-1"
+      }
+    },
+
+    {
+      "trans": [-314.41, 4.47, -366.80], // translation
+      "etype": "money",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-314.41, 4.47, -366.80, 10], // bounding sphere
+      "lump": {
+        "name": "outset-money-2"
+      }
+    },
+
+    {
+      "trans": [-320.78, 4.58, -362.39], // translation
+      "etype": "money",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-320.78, 4.58, -362.39, 10], // bounding sphere
+      "lump": {
+        "name": "outset-money-3"
+      }
+    },
+
+    {
+      "trans": [-328.92, 4.57, -356.57], // translation
+      "etype": "money",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-328.92, 4.57, -356.57, 10], // bounding sphere
+      "lump": {
+        "name": "outset-money-4"
+      }
+    },
+
+    {
+      "trans": [-340.16, 5.5, -163.46], // translation
+      "etype": "money",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-340.16, 5.5, -163.46, 10], // bounding sphere
+      "lump": {
+        "name": "outset-money-5"
+      }
+    },
+
+    // the "pickup amount" for scout flies is used to keep track of
+    // their task and their count, the upper 16 bits are for the count,
+    // the lower 16 bits are the task.
+    // if you want to track scout flies for task 119:
+    // - first scout fly gets 119
+    // - get the task number in hex: 119 -> 0x0077
+    // - get the hex number for the first scout fly: 0x00000077 (0x0000: upper 16 bits; 0x0077: lower 16 bits)
+    // - add 1 to the upper 16 bits (0x0000) for the next fly
+    // - convert to decimal: 0x00010077 -> 65655
+    // - rinse and repeat until you have the last scout fly: 0x00060074 -> 393334
+    //
+    // also, I don't think the movie-pos is strictly necessary, but I haven't tried without it yet.
+    // if you do not want to compile from source,
+    // as it requires one change I made in a .cpp file, just leave it out.
+    {
+      "trans": [-236.33, 35.40, -253.42], // translation
+      "etype": "crate",  // actor type
+      "game_task": 119, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-236.33, 35.40, -253.42, 10], // bounding sphere
+      "lump": {
+        "name": "outset-buzzer-crate-1",
+        "crate-type":"'iron",
+        "eco-info": ["int32", 8, 119],
+        "movie-pos": ["vector", [-236.33, 35.40, -253.42, 1.0]]
+      }
+    },
+
+    {
+      "trans": [-320.97, 75.55, -144.72], // translation
+      "etype": "crate",  // actor type
+      "game_task": 119, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-320.97, 75.55, -144.72, 10], // bounding sphere
+      "lump": {
+        "name": "outset-buzzer-crate-2",
+        "crate-type":"'iron",
+        "eco-info": ["int32", 8, 65655],
+        "movie-pos": ["vector", [-320.97, 75.55, -144.72, 1.0]]
+      }
+    },
+
+    {
+      "trans": [-394.46, 5.02, -196.75], // translation
+      "etype": "crate",  // actor type
+      "game_task": 119, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-394.46, 5.02, -196.75, 10], // bounding sphere
+      "lump": {
+        "name": "outset-buzzer-crate-3",
+        "crate-type":"'iron",
+        "eco-info": ["int32", 8, 131191],
+        "movie-pos": ["vector", [-394.46, 5.02, -196.75, 1.0]]
+      }
+    },
+
+    {
+      "trans": [-434.62, 22.38, -268.48], // translation
+      "etype": "crate",  // actor type
+      "game_task": 119, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-434.62, 22.38, -268.48, 10], // bounding sphere
+      "lump": {
+        "name": "outset-buzzer-crate-4",
+        "crate-type":"'iron",
+        "eco-info": ["int32", 8, 196727],
+        "movie-pos": ["vector", [-434.62, 22.38, -268.48, 1.0]]
+      }
+    },
+
+    {
+      "trans": [-504.74, 19.75, -411.01], // translation
+      "etype": "crate",  // actor type
+      "game_task": 119, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-504.74, 19.75, -411.01, 10], // bounding sphere
+      "lump": {
+        "name": "outset-buzzer-crate-5",
+        "crate-type":"'iron",
+        "eco-info": ["int32", 8, 262263],
+        "movie-pos": ["vector", [-504.74, 19.75, -411.01, 1.0]]
+      }
+    },
+
+    {
+      "trans": [-274.41, 11.53, -129.64], // translation
+      "etype": "crate",  // actor type
+      "game_task": 119, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-274.41, 11.53, -129.64, 10], // bounding sphere
+      "lump": {
+        "name": "outset-buzzer-crate-6",
+        "crate-type":"'iron",
+        "eco-info": ["int32", 8, 327799],
+        "movie-pos": ["vector", [-274.41, 11.53, -129.64, 1.0]]
+      }
+    },
+
+    {
+      "trans": [-431.79, 15.22, -380.69], // translation
+      "etype": "crate",  // actor type
+      "game_task": 119, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-431.79, 15.22, -380.69, 10], // bounding sphere
+      "lump": {
+        "name": "outset-buzzer-crate-7",
+        "crate-type":"'iron",
+        "eco-info": ["int32", 8, 393335],
+        "movie-pos": ["vector", [-431.79, 15.22, -380.69, 1.0]]
+      }
+    },
+
+    {
+      "trans": [-357.89, 6.48, -312.29], // translation
+      "etype": "crate",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-357.89, 6.48, -312.29, 10], // bounding sphere
+      "lump": {
+        "name": "outset-crate-1",
+        "crate-type":"'wood",
+        "eco-info": ["int32", 5, 20]
+      }
+    },
+
+    {
+      "trans": [-332.42, 75.55, -148.26], // translation
+      "etype": "crate",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-332.42, 75.55, -148.26, 10], // bounding sphere
+      "lump": {
+        "name": "outset-crate-2",
+        "crate-type":"'steel",
+        "eco-info": ["int32", 5, 5]
+      }
+    },
+
+    {
+      "trans": [-432.09, 25.64, -226.47], // translation
+      "etype": "crate",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-432.09, 25.64, -226.47, 10], // bounding sphere
+      "lump": {
+        "name": "outset-crate-3",
+        "crate-type":"'wood",
+        "eco-info": ["int32", 9, 1]
+      }
+    },
+
+    {
+      "trans": [-432.09, 25.64, -227.97], // translation
+      "etype": "crate",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-432.09, 25.64, -227.97, 10], // bounding sphere
+      "lump": {
+        "name": "outset-crate-4",
+        "crate-type":"'wood",
+        "eco-info": ["int32", 9, 1]
+      }
+    },
+
+    {
+      "trans": [-320.69, 75.55, -138.68], // translation
+      "etype": "crate",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-320.69, 75.55, -138.68, 10], // bounding sphere
+      "lump": {
+        "name": "outset-crate-5",
+        "crate-type":"'steel",
+        "eco-info": ["int32", 5, 5]
+      }
+    },
+
+    {
+      "trans": [-328.18, 82.38, -100.1], // translation
+      "etype": "eco-yellow",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-328.18, 82.38, -100.1, 10], // bounding sphere
+      "lump": {
+        "name": "outset-eco-1"
+      }
+    },
+
+    {
+      "trans": [-340.77, 82.29, -127.01], // translation
+      "etype": "eco-blue",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-340.77, 82.29, -127.01, 10], // bounding sphere
+      "lump": {
+        "name": "outset-eco-2"
+      }
+    },
+
+    {
+      "trans": [-376.06, 69.04, -144.41], // translation
+      "etype": "launcher",  // actor type
+      "game_task": 0, // associated game task (for powercells, etc)
+      "quat" : [0, 0, 0, 1], // quaternion
+      "bsphere": [-376.06, 69.04, -144.41, 10], // bounding sphere
+      "lump": {
+        "name": "outset-launcher-1",
+        "mode": ["int32", 257],
+        "spring-height": ["float", 614400.0]
+      }
+    }
+  ]
+}
+
+//11 = Nothing
+//10 = Nothing
+//9 = Small Green Eco (2 or 3)
+//8 = Scout Fly
+//7 = Small Green Eco (Exact)
+//6 = Power Cell (Non-collectable)
+//5 = Orb
+//4 = Large Green Eco
+//3 = Large Blue Eco
+//2 = Large Red Eco
+//1 = Yellow Eco
+//0 = Nothing
+
+//crate-type: wood, steel, 

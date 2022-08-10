@@ -684,6 +684,11 @@
   (scene-player                 #x10c1)
   (play-credits                 #x10c2)
   (scrapbook                    #x10c3)
+  ;; custom level strings
+  (outset-level-name            #x10c4)
+  (outset-gimmie-task-name      #x10c5)
+  (outset-spyro-task-name       #x10c6)
+  (outset-buzzer-task-name      #x10c7)
   (default                      #x10d0)
   (flava-vi1-unused0            #x10d1)
   (flava-sage                   #x10d2)

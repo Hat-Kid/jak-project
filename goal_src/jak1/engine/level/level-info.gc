@@ -2012,4 +2012,64 @@
                            )
         )
 
+(define outset-island (new 'static 'level-load-info
+                           ;; this index is important for the *level-task-data-remap* array in progress-static.gc
+                           :index 22
+                           :name 'outset-island
+                           :visname 'outset-island-vis ;; name + -vis
+                           :nickname 'ost          ;; nickname
+                           :packages '()
+                           :sound-banks '(beach)
+                           :music-bank 'beach
+                           :ambient-sounds '()
+                           :mood '*beach-mood*
+                           :mood-func 'update-mood-village1
+                           :ocean '*ocean-map-village1*
+                           :sky #t
+                           :sun-fade 1.0
+                           :continues '((new 'static 'continue-point
+                                             :name "outset-start"
+                                             :level 'outset-island
+                                             :trans (new 'static 'vector :x (meters -284.23) :y (meters 2.06) :z (meters -378.14) :w 1.0)
+                                             :quat (new 'static 'quaternion  :w 1.0)
+                                             :camera-trans (new 'static 'vector :x 0.0 :y 4096.0 :z 0.0 :w 1.0)
+                                             :camera-rot (new 'static 'array float 9 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0)
+                                             :load-commands '()
+                                             :vis-nick 'none
+                                             :lev0 'outset-island
+                                             :disp0 'display
+                                             :lev1 'beach
+                                             :disp1 'display
+                                             )
+                                            (new 'static 'continue-point
+                                             :name "outset-spyro"
+                                             :level 'outset-island
+                                             :trans (new 'static 'vector :x (meters -340.77) :y (meters 82.29) :z (meters -127.01) :w 1.0)
+                                             :quat (new 'static 'quaternion  :w 1.0)
+                                             :camera-trans (new 'static 'vector :x 0.0 :y 4096.0 :z 0.0 :w 1.0)
+                                             :camera-rot (new 'static 'array float 9 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0)
+                                             :load-commands '()
+                                             :vis-nick 'none
+                                             :lev0 'outset-island
+                                             :disp0 'display
+                                             :lev1 'beach
+                                             :disp1 'display
+                                             )
+                                          )
+                           ;; the tasks that our level has
+                           :tasks '(117 118 119)
+                           :priority 100
+                           :load-commands '()
+                           :alt-load-commands '()
+                           :bsp-mask #xffffffffffffffff
+                           :bsphere (new 'static 'sphere :w 167772160000.0)
+                           ;; the task id for this level's scout fly cell
+                           :buzzer 119
+                           :bottom-height (meters -20)
+                           :run-packages '("common")
+                           :wait-for-load #t
+                           )
+        )
+
 (cons! *level-load-list* 'test-zone)
+(cons! *level-load-list* 'outset-island)
