@@ -227,6 +227,14 @@ void OceanTexture::handle_ocean_texture(DmaFollower& dma,
   render_state->texture_pool->move_existing_to_vram(m_tex0_gpu, OCEAN_TEX_TBP);
 }
 
+void OceanTexture::handle_ocean_texture_jak2(DmaFollower& dma,
+                                             SharedRenderState* render_state,
+                                             ScopedProfilerNode& prof) {
+  // if we're doing mipmaps, render to temp.
+  // otherwise, render directly to target.
+  // FramebufferTexturePairContext ctxt(m_generate_mipmaps ? m_temp_texture : m_result_texture);
+}
+
 /*!
  * Generate mipmaps for the ocean texture.
  * There's a trick here - we reduce the intensity of alpha on the lower lods. This lets texture

@@ -93,6 +93,8 @@ void OpenGLRenderer::init_bucket_renderers_jak2() {
   init_bucket_renderer<TextureUploadHandler>("tex-lcom-sky-pre", BucketCategory::TEX,
                                              BucketId::TEX_LCOM_SKY_PRE);
   init_bucket_renderer<DirectRenderer>("sky-draw", BucketCategory::OTHER, BucketId::SKY_DRAW, 1024);
+  init_bucket_renderer<OceanMidAndFar>("ocean-mid-and-far", BucketCategory::OCEAN,
+                                       BucketId::OCEAN_FAR);
   init_bucket_renderer<TextureUploadHandler>("tex-l0-tfrag", BucketCategory::TEX,
                                              BucketId::TEX_L0_TFRAG);
   init_bucket_renderer<TFragment>("tfrag-l0-tfrag", BucketCategory::TFRAG, BucketId::TFRAG_L0_TFRAG,

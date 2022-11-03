@@ -11,6 +11,9 @@ class OceanTexture {
   void handle_ocean_texture(DmaFollower& dma,
                             SharedRenderState* render_state,
                             ScopedProfilerNode& prof);
+  void handle_ocean_texture_jak2(DmaFollower& dma,
+                                 SharedRenderState* render_state,
+                                 ScopedProfilerNode& prof);
   void init_textures(TexturePool& pool);
   void draw_debug_window();
   ~OceanTexture();

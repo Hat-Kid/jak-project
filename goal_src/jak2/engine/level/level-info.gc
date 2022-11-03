@@ -13199,7 +13199,7 @@
     :ambient-sounds '()
     :mood-func 'update-mood-village1
     :mood-init 'init-mood-village1
-    :ocean '*ocean-map-village1*
+    :ocean '*ocean-map-city*
     :sky #t
     :use-camera-other #f
     :continues '((new 'static 'continue-point

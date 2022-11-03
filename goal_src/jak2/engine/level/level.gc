@@ -2152,7 +2152,8 @@
                   )
                  (*debug-segment*
                    ; 'prison
-                   'ctysluma
+                   ; 'ctysluma
+                   'village1
                    )
                  (else
                    'title

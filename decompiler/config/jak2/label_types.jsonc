@@ -489,5 +489,8 @@
   "ocean-texture": [
     ["L55", "vector4w"],
     ["L56", "vector"]
+  ],
+  "foreground": [
+    ["L213", "vector"]
   ]
 }
