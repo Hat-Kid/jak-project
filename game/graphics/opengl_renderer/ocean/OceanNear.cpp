@@ -52,7 +52,7 @@ void OceanNear::render(DmaFollower& dma,
   {
     auto p = prof.make_scoped_child("texture");
     // TODO: this looks the same as the previous ocean renderer to me... why do it again?
-    m_texture_renderer.handle_ocean_texture(dma, render_state, p);
+    m_texture_renderer.handle_ocean_texture_jak1(dma, render_state, p);
   }
 
   if (dma.current_tag().qwc != 2) {

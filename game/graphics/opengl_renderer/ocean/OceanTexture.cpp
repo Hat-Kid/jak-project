@@ -70,7 +70,7 @@ void OceanTexture::draw_debug_window() {
   }
 }
 
-void OceanTexture::handle_ocean_texture(DmaFollower& dma,
+void OceanTexture::handle_ocean_texture_jak1(DmaFollower& dma,
                                         SharedRenderState* render_state,
                                         ScopedProfilerNode& prof) {
   // if we're doing mipmaps, render to temp.
@@ -233,6 +233,37 @@ void OceanTexture::handle_ocean_texture_jak2(DmaFollower& dma,
   // if we're doing mipmaps, render to temp.
   // otherwise, render directly to target.
   // FramebufferTexturePairContext ctxt(m_generate_mipmaps ? m_temp_texture : m_result_texture);
+
+  {
+    // (set-display-gs-state arg0 (the-as int (+ (-> *ocean-texture-base* vram-page) 8)) 64 64 0 0)
+    auto data = dma.read_and_advance();
+    (void)data;
+  }
+
+  {
+    auto data = dma.read_and_advance();
+    ASSERT(data.size_bytes == 32);
+    ASSERT(data.vifcode0().kind == VifCode::Kind::NOP);
+    ASSERT(data.vifcode1().kind == VifCode::Kind::DIRECT);
+    // ASSERT(data.vifcode1().immediate == 0x4);
+  }
+
+  {
+    auto data = dma.read_and_advance();
+    ASSERT(data.size_bytes == 32);
+    ASSERT(data.vifcode0().kind == VifCode::Kind::NOP);
+    ASSERT(data.vifcode1().kind == VifCode::Kind::DIRECT);
+    // ASSERT(data.vifcode1().immediate == 0x4);
+  }
+
+  {
+    auto data = dma.read_and_advance();
+    ASSERT(data.size_bytes == sizeof(AdGifData) + 16);
+    ASSERT(data.vifcode0().kind == VifCode::Kind::NOP);
+    ASSERT(data.vifcode1().kind == VifCode::Kind::DIRECT);
+    // ASSERT(data.vifcode1().immediate == 0x4);
+    // memcpy(&m_envmap_adgif, data.data + 16, sizeof(AdGifData));
+  }
 }
 
 /*!

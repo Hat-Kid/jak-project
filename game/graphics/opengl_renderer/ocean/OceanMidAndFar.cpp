@@ -59,10 +59,10 @@ void OceanMidAndFar::render_jak2(DmaFollower& dma,
 
   {
     auto p = prof.make_scoped_child("texture");
-    m_texture_renderer.handle_ocean_texture(dma, render_state, p);
+    m_texture_renderer.handle_ocean_texture_jak2(dma, render_state, p);
   }
 
-  //  handle_ocean_far(dma, render_state, prof);
+  handle_ocean_far_jak2(dma, render_state, prof);
   //  m_direct.flush_pending(render_state, prof);
   //
   //  m_direct.set_mipmap(true);
@@ -110,10 +110,10 @@ void OceanMidAndFar::render_jak1(DmaFollower& dma,
 
   {
     auto p = prof.make_scoped_child("texture");
-    m_texture_renderer.handle_ocean_texture(dma, render_state, p);
+    m_texture_renderer.handle_ocean_texture_jak1(dma, render_state, p);
   }
 
-  handle_ocean_far(dma, render_state, prof);
+  handle_ocean_far_jak1(dma, render_state, prof);
   m_direct.flush_pending(render_state, prof);
 
   m_direct.set_mipmap(true);
@@ -131,7 +131,17 @@ void OceanMidAndFar::render_jak1(DmaFollower& dma,
   m_direct.set_mipmap(false);
 }
 
-void OceanMidAndFar::handle_ocean_far(DmaFollower& dma,
+void OceanMidAndFar::handle_ocean_far_jak2(DmaFollower& dma,
+                                           SharedRenderState* render_state,
+                                           ScopedProfilerNode& prof) {
+  auto init_data = dma.read_and_advance();
+  auto kind = dma.current_tag().kind;
+  auto vif0 = init_data.vifcode0().print();
+  auto vif1 = init_data.vifcode1().print();
+  ASSERT(init_data.size_bytes == 160);
+}
+
+void OceanMidAndFar::handle_ocean_far_jak1(DmaFollower& dma,
                                       SharedRenderState* render_state,
                                       ScopedProfilerNode& prof) {
   auto init_data = dma.read_and_advance();

@@ -8,7 +8,7 @@
 class OceanTexture {
  public:
   OceanTexture(bool generate_mipmaps);
-  void handle_ocean_texture(DmaFollower& dma,
+  void handle_ocean_texture_jak1(DmaFollower& dma,
                             SharedRenderState* render_state,
                             ScopedProfilerNode& prof);
   void handle_ocean_texture_jak2(DmaFollower& dma,
