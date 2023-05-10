@@ -3225,6 +3225,7 @@
              (flag "hero-mode" 32768 dm-game-secret-toggle-pick-func)
              (flag "big-head" 65536 dm-game-secret-toggle-pick-func)
              (flag "little-head" 131072 dm-game-secret-toggle-pick-func)
+             (flag "board-fast" 262144 dm-game-secret-toggle-pick-func)
              )
            (menu "Continue")
            (menu
