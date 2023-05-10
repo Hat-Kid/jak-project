@@ -577,6 +577,14 @@
                                                       :avail-after (game-task-node fortress-escape-start)
                                                       )
                                                     (new 'static 'secret-item-option
+                                                      :name (text-id progress-secrets-board-fast)
+                                                      :scale #t
+                                                      :cost 50
+                                                      :can-toggle #t
+                                                      :flag (game-secrets board-fast)
+                                                      :avail-after (game-task-node forest-scouts-get-board)
+                                                      )
+                                                    (new 'static 'secret-item-option
                                                       :name (text-id progress-main-secrets-scrapbook)
                                                       :scale #t
                                                       :cost 55
@@ -727,6 +735,14 @@
                                                       :can-toggle #t
                                                       :flag (game-secrets little-head)
                                                       :avail-after (game-task-node fortress-escape-start)
+                                                      )
+                                                    (new 'static 'secret-item-option
+                                                      :name (text-id progress-secrets-board-fast)
+                                                      :scale #t
+                                                      :cost 50
+                                                      :can-toggle #t
+                                                      :flag (game-secrets board-fast)
+                                                      :avail-after (game-task-node forest-scouts-get-board)
                                                       )
                                                     (new 'static 'secret-item-option
                                                       :name (text-id progress-main-secrets-scrapbook)
