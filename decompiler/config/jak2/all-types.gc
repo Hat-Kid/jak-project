@@ -7209,6 +7209,8 @@
   (scene-subtitles-disabled #x30e)
   (board-name #x30f)
   (progress-unknown-continue #x310)
+
+  (progress-secrets-board-fast #x400)
 )
 ;; ---text-id-h:text-id
 
@@ -13141,6 +13143,7 @@
   (hero-mode)
   (big-head)
   (little-head)
+  (board-fast)
   (game-secret-unknown))
 ;; ---game-info-h:game-secrets
 
