@@ -10,6 +10,7 @@
 
 ;; The "perm" data is saved to the memory card.
 
+(defun-extern orange-demon-manager-start symbol none)
 
 ;;;;;;;;;;;;;;;;;;
 ;; border plane
@@ -313,6 +314,11 @@
                                              )
                                            (suspend)
                                            (start arg0 arg2)
+                                           (when arg3
+                                            (if (task-complete? *game-info* (game-task training-gimmie))
+                                              (orange-demon-manager-start #t)
+                                              )
+                                             )
                                            (none)
                                            )
                               (-> obj mode) cause (get-or-create-continue! obj) save-to-load
