@@ -20,6 +20,8 @@
   (anim 6)
   )
 
+(defun-extern orange-demon-manager-start symbol none)
+
 ;; DECOMP BEGINS
 
 (import "goal_src/jak1/import/buzzer-ag.gc")
@@ -1527,6 +1529,9 @@
       (if t9-1
           (t9-1)
           )
+      )
+    (if (and (-> self entity) (string= (the string (-> self name)) "fuel-cell-55"))
+      (orange-demon-manager-start #t)
       )
     (none)
     )
