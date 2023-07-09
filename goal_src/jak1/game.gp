@@ -2080,6 +2080,10 @@
 (goal-src "pc/debug/pc-debug-common.gc" "pckernel-impl" "entity-h" "game-info-h" "level-h" "settings-h" "gsound-h" "target-util")
 (goal-src "pc/debug/pc-debug-methods.gc" "pc-debug-common")
 
+(goal-src "engine/common-obs/orange-demon-h.gc" "process-drawable")
+(goal-src "engine/common-obs/orange-demon.gc" "orange-demon-h")
+(goal-src "pc/hud-orange-demon.gc" "orange-demon" "hud-classes-pc")
+
 (group-list "all-code"
   `(,@(reverse *all-gc*))
   )

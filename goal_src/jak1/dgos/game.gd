@@ -344,5 +344,8 @@
   "plat-eco.o"
   "ropebridge.o"
   "ticky.o"
+  "orange-demon-h.o"
+  "orange-demon.o"
   "hud-classes-pc.o" ;; added
+  "hud-orange-demon.o"
  ))
