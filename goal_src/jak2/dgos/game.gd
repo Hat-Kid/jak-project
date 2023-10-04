@@ -368,6 +368,7 @@
   "progress-draw.o"
   "progress-draw-pc.o" ;; added
   "progress-generic-draw-pc.o" ;; added
+  "speedometer.o" ;; added
   "ocean.o"
   "ocean-vu0.o"
   "ocean-texture.o"

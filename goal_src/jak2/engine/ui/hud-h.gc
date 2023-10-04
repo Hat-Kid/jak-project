@@ -576,3 +576,12 @@
   :size-assert         #xba4
   :flag-assert         #x1b0b300ba4
   )
+
+;; og:preserve-this added
+(#when PC_PORT
+  (deftype hud-speedometer (hud)
+    ((bike-icons hud-icon 3 :inline)
+     (car-icons hud-icon 3 :inline)
+     )
+    )
+)

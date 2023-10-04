@@ -1082,7 +1082,9 @@
     (the int (+ 30.0 (* -130.0 (-> this offset))))
     (the int (+ 30.0 (* -100.0 (-> this offset))))
     )
+  (format *stdcon* "xz-vel norm: ~D~%" (-> this values 0 current))
   (set! (-> this sprites 0 angle) (* 182.04445 (the float (- 270 (/ (* 90 (-> this values 0 current)) 100)))))
+  (format *stdcon* "ang: ~f~%" (/ (-> this sprites 0 angle) 360.0))
   (set-as-offset-from! (the-as hud-sprite (-> this sprites)) (the-as vector4w (-> this sprites 2)) 40 16)
   (set-as-offset-from! (-> this sprites 1) (the-as vector4w (-> this sprites 2)) 1 16)
   (set-as-offset-from! (-> this sprites 3) (the-as vector4w (-> this sprites 2)) 7 5)
@@ -1128,6 +1130,8 @@
   (set! *hud-skullgem* (process-spawn hud-skullgem :init hud-init-by-other :to arg0))
   (process-spawn hud-skill :init hud-init-by-other :to arg0)
   (process-spawn hud-gun :init hud-init-by-other :to arg0)
+  ;; og:preserve-this added
+  (#when PC_PORT (process-spawn hud-speedometer :init hud-init-by-other :to arg0))
   0
   (none)
   )

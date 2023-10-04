@@ -1,0 +1,243 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+#|@file
+A HUD element that displays your velocity while on the jetboard or on a zoomer.
+|#
+
+(defconstant BOARD_MAX_SPEED 35.0)
+(defconstant BIKE_MAX_SPEED 40.0)
+
+(defmethod draw hud-speedometer ((this hud-speedometer))
+  (set-hud-piece-position!
+    (the-as hud-sprite (-> this icons 0 pos))
+    (the int (+ 457.0 (* 130.0 (-> this offset))))
+    210
+    )
+  (set-hud-piece-position!
+    (the-as hud-sprite (-> this sprites 2))
+    (the int (+ 420.0 (* 130.0 (-> this offset))))
+    150
+    )
+  (set-as-offset-from!
+    (the-as hud-sprite (-> this sprites))
+    (the-as vector4w (-> this icons 0 pos))
+    (if (= (-> *setting-control* user-default aspect-ratio) 'aspect4x3)
+        -19
+        -25
+        )
+    -39
+    )
+  (set! (-> this sprites 0 scale-x) (if (= (-> *setting-control* user-default aspect-ratio) 'aspect4x3)
+                                        0.62
+                                        0.77
+                                        )
+        )
+  (format (clear (-> this strings 0 text)) "~D" (-> this values 0 current))
+  (set-as-offset-from! (the-as hud-sprite (-> this strings 0 pos)) (the-as vector4w (-> this icons 0 pos)) 0 15)
+  ;; (when (not (paused?))
+  ;;   (let ((s5-1 (new-stack-quaternion0)))
+  ;;     (quaternion-axis-angle! s5-1 0.0 1.0 0.0 364.0889)
+  ;;     (quaternion*! (-> this icons 0 icon 0 root quat) s5-1 (-> this icons 0 icon 0 root quat))
+  ;;     )
+  ;;   )
+  (when (not (paused?))
+    (let ((quat (new 'static 'quaternion :x -0.354 :y 0.146 :z 0.354 :w 0.854))
+          (rot (new-stack-quaternion0)))
+      (quaternion-copy! (-> this icons 0 icon 0 root quat) quat)
+      (quaternion-axis-angle! rot 0.0 1.0 0.0 364.0889)
+      (quaternion*! (-> this icons 0 icon 0 root quat) rot (-> this icons 0 icon 0 root quat))
+      )
+    )
+  ;; (set! (-> this sprites 0 angle) (* 182.04445 (the float (- 270 (/ (* 90 (-> this values 0 current)) 100)))))
+  (let ((xz-vel (new-stack-vector0))
+        (y-vel (vector-dot (-> *target* control dynam gravity-normal) (-> *target* control transv))))
+    (vector-! xz-vel (-> *target* control transv) (vector-float*! xz-vel (-> *target* control dynam gravity-normal) y-vel))
+    (let ((val (if (focus-test? *target* board)
+                   (the int (* 100.0 (/ (/ (vector-length xz-vel) 4096.0) BOARD_MAX_SPEED)))
+                   (the int (* 100.0 (/ (/ (vector-length xz-vel) 4096.0) BIKE_MAX_SPEED))))))
+      (format *stdcon* "xz-vel norm: ~D~%" val)
+      (set! (-> this sprites 0 angle) (* 182.04445 (the float (- 270 (/ (* 90 val) 100)))))
+      (format *stdcon* "ang: ~f~%" (/ (-> this sprites 0 angle) 360.0))
+      )
+    )
+  (set-as-offset-from! (the-as hud-sprite (-> this sprites)) (the-as vector4w (-> this sprites 2)) 40 16)
+  (set-as-offset-from! (-> this sprites 1) (the-as vector4w (-> this sprites 2)) 1 16)
+  ;; (set-as-offset-from! (-> this sprites 3) (the-as vector4w (-> this sprites 2)) 7 5)
+  ;; ((method-of-type hud draw) this)
+  (call-parent-method this)
+  (none)
+  )
+
+(defmethod init-callback hud-speedometer ((this hud-speedometer))
+  (set! (-> this gui-id) (add-process *gui-control* this (gui-channel hud-middle-right) (gui-action hidden) (-> this name) 81920.0 0))
+  (hud-create-icon this 0 (the int (art-group-get-by-name *level* "skel-board" (the (pointer uint32) #f))))
+  ;; (hud-create-icon this 1 (the int (art-group-get-by-name *level* "skel-bikea" (the (pointer uint32) #f))))
+  (set! (-> this icons 0 scale-x) 0.009)
+  (set! (-> this icons 0 scale-y) -0.018)
+  (set! (-> this icons 1 scale-x) 0.009)
+  (set! (-> this icons 1 scale-y) -0.018)
+  (set! (-> this sprites 0 tex) (lookup-texture-by-id (new 'static 'texture-id :index #x1e :page #x67a)))
+  (set! (-> this sprites 0 scale-x) 12.0)
+  (set! (-> this sprites 0 scale-y) 11.2)
+  (set! (-> this sprites 0 pos z) #xfffff2)
+  (set! (-> this sprites 1 tex) (lookup-texture-by-id (new 'static 'texture-id :index #x25 :page #x67a)))
+  (set! (-> this sprites 1 pos z) #xfffff0)
+  (set! (-> this sprites 2 tex) (lookup-texture-by-id (new 'static 'texture-id :index #x12 :page #x67a)))
+  (set! (-> this sprites 2 pos z) #xffffff)
+  ;; (set! (-> this sprites 3 tex)
+  ;;       (lookup-texture-by-name "hud-samos-young-head-01" (the-as string #f) (the-as (pointer texture-page) #f))
+  ;;       )
+  ;; (set! (-> this sprites 3 scale-x) 0.8)
+  ;; (set! (-> this sprites 3 scale-y) 0.8)
+  ;; (set! (-> this sprites 3 pos z) #xffffff)
+  (alloc-string-if-needed this 0)
+  (set! (-> this strings 0 flags) (font-flags kerning middle large))
+  (set! (-> this strings 0 scale) 0.5)
+  (none)
+  )
+
+(defmethod update-values hud-speedometer ((this hud-speedometer))
+  (cond
+    ((focus-test? *target* board pilot)
+     (let ((xz-vel (new-stack-vector0))
+           (y-vel (vector-dot (-> *target* control dynam gravity-normal) (-> *target* control transv))))
+       (vector-! xz-vel (-> *target* control transv) (vector-float*! xz-vel (-> *target* control dynam gravity-normal) y-vel))
+       ;; (set! (-> this values 0 target) (the int (/ (/ (vector-length xz-vel) 4096.0) BOARD_MAX_SPEED)))
+       (set! (-> this values 0 target) (the int (/ (vector-length xz-vel) 4096.0)))
+       ;; (set! (-> this values 1 target) (the int (/ (/ (vector-length xz-vel) 4096.0) BIKE_MAX_SPEED)))
+       )
+     (logclear! (-> this flags) (hud-flags disable))
+     (logior! (-> this flags) (hud-flags show))
+     )
+    (else
+      (logior! (-> this flags) (hud-flags disable))
+      (logclear! (-> this flags) (hud-flags show))
+      (send-event this 'hide)
+      )
+    )
+
+  ;; ((method-of-type hud update-values) this)
+  (call-parent-method this)
+  (none)
+  )
+
+(defmethod update-value-callback hud-speedometer ((this hud-speedometer) (arg0 int) (arg1 int))
+  (none)
+  )
+
+;; (defmethod draw hud-skill ((this hud-skill))
+;;   (set-hud-piece-position!
+;;     (the-as hud-sprite (-> this icons 0 pos))
+;;     (the int (+ 60.0 (* -130.0 (-> this offset))))
+;;     270
+;;     )
+;;   (set-as-offset-from!
+;;     (the-as hud-sprite (-> this sprites))
+;;     (the-as vector4w (-> this icons 0 pos))
+;;     (if (= (-> *setting-control* user-default aspect-ratio) 'aspect4x3)
+;;         -19
+;;         -25
+;;         )
+;;     -39
+;;     )
+;;   (set! (-> this sprites 0 scale-x) (if (= (-> *setting-control* user-default aspect-ratio) 'aspect4x3)
+;;                                         0.62
+;;                                         0.77
+;;                                         )
+;;         )
+;;   (format (clear (-> this strings 0 text)) "~D" (-> this values 0 current))
+;;   (set-as-offset-from! (the-as hud-sprite (-> this strings 0 pos)) (the-as vector4w (-> this icons 0 pos)) 0 -5)
+;;   (when (not (paused?))
+;;     (let ((s5-1 (new 'stack-no-clear 'quaternion)))
+;;       (quaternion-axis-angle! s5-1 0.0 1.0 0.0 364.0889)
+;;       (quaternion*! (-> this icons 0 icon 0 root quat) s5-1 (-> this icons 0 icon 0 root quat))
+;;       )
+;;     )
+;;   ((method-of-type hud draw) this)
+;;   0
+;;   (none)
+;;   )
+
+;; (defmethod update-values hud-skill ((this hud-skill))
+;;   (set! (-> this values 0 target) (the int (-> *target* game skill)))
+;;   ((method-of-type hud update-values) this)
+;;   0
+;;   (none)
+;;   )
+;; 
+;; (defmethod init-callback hud-skill ((this hud-skill))
+;;   (set! (-> this gui-id)
+;;         (add-process *gui-control* this (gui-channel hud-middle-left) (gui-action hidden) (-> this name) 81920.0 0)
+;;         )
+;;   (hud-create-icon
+;;     this
+;;     0
+;;     (the-as int (art-group-get-by-name *level* "skel-skill" (the-as (pointer uint32) #f)))
+;;     )
+;;   (set! (-> this icons 0 scale-x) 0.009)
+;;   (set! (-> this icons 0 scale-y) -0.018)
+;;   (set! (-> this sprites 0 tex) (lookup-texture-by-id (new 'static 'texture-id :index #x30 :page #x67a)))
+;;   (set! (-> this sprites 0 scale-x) 0.62)
+;;   (set! (-> this sprites 0 scale-y) 1.34)
+;;   (set! (-> this sprites 0 pos z) #xfff9ff)
+;;   (alloc-string-if-needed this 0)
+;;   (set! (-> this strings 0 flags) (font-flags kerning middle large))
+;;   (set! (-> this strings 0 scale) 0.5)
+;;   (logior! (-> this values 0 flags) 1)
+;;   0
+;;   (none)
+;;   )
+;; 
+;; (defmethod update-value-callback hud-skill ((this hud-skill) (arg0 int) (arg1 int))
+;;   (if (> arg1 0)
+;;       (sound-play "skill-pickup" :pitch 0.5)
+;;       )
+;;   0
+;;   (none)
+;;   )
+;; 
+;; (defmethod draw hud-samos-young ((this hud-samos-young))
+;;   (set-hud-piece-position!
+;;     (-> this sprites 2)
+;;     (the int (+ 30.0 (* -130.0 (-> this offset))))
+;;     (the int (+ 30.0 (* -100.0 (-> this offset))))
+;;     )
+;;   (set! (-> this sprites 0 angle) (* 182.04445 (the float (- 270 (/ (* 90 (-> this values 0 current)) 100)))))
+;;   (set-as-offset-from! (the-as hud-sprite (-> this sprites)) (the-as vector4w (-> this sprites 2)) 40 16)
+;;   (set-as-offset-from! (-> this sprites 1) (the-as vector4w (-> this sprites 2)) 1 16)
+;;   (set-as-offset-from! (-> this sprites 3) (the-as vector4w (-> this sprites 2)) 7 5)
+;;   ((method-of-type hud draw) this)
+;;   0
+;;   (none)
+;;   )
+;; 
+;; (defmethod update-values hud-samos-young ((this hud-samos-young))
+;;   (set! (-> this values 0 target) (the int (* 100.0 (-> *game-info* bot-health 0))))
+;;   ((method-of-type hud update-values) this)
+;;   0
+;;   (none)
+;;   )
+;; 
+;; (defmethod init-callback hud-samos-young ((this hud-samos-young))
+;;   (set! (-> this gui-id)
+;;         (add-process *gui-control* this (gui-channel hud-upper-left) (gui-action hidden) (-> this name) 81920.0 0)
+;;         )
+;;   (logior! (-> this flags) (hud-flags show))
+;;   (set! (-> this sprites 0 tex) (lookup-texture-by-id (new 'static 'texture-id :index #x1e :page #x67a)))
+;;   (set! (-> this sprites 0 scale-x) 12.0)
+;;   (set! (-> this sprites 0 scale-y) 11.2)
+;;   (set! (-> this sprites 0 pos z) #xfffff2)
+;;   (set! (-> this sprites 1 tex) (lookup-texture-by-id (new 'static 'texture-id :index #x25 :page #x67a)))
+;;   (set! (-> this sprites 1 pos z) #xfffff0)
+;;   (set! (-> this sprites 2 tex) (lookup-texture-by-id (new 'static 'texture-id :index #x12 :page #x67a)))
+;;   (set! (-> this sprites 2 pos z) #xffffff)
+;;   (set! (-> this sprites 3 tex)
+;;         (lookup-texture-by-name "hud-samos-young-head-01" (the-as string #f) (the-as (pointer texture-page) #f))
+;;         )
+;;   (set! (-> this sprites 3 scale-x) 0.8)
+;;   (set! (-> this sprites 3 scale-y) 0.8)
+;;   (set! (-> this sprites 3 pos z) #xffffff)
+;;   0
+;;   (none)
+;;   )
