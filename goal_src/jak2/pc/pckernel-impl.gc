@@ -20,7 +20,7 @@
 
 
 ;; cheats
-(defconstant PC_CHEAT_MAX 19) ;; number of cheats
+(defconstant PC_CHEAT_MAX 20) ;; number of cheats
 (defenum pc-cheats
   :bitfield #t
   :type uint64
@@ -43,6 +43,7 @@
   (board-tricks)
   (weather-bad)
   (weather-good)
+  (speedometer)
   )
   
 ;; pc enum for languages. this is the game's languages + custom ones.
@@ -210,11 +211,20 @@
   (clear-time-mod)
   )
 
+(defenum speedometer-units
+  :bitfield #f
+  :type uint8
+  (mps)
+  (kmh)
+  (mph)
+  )
+
 (deftype pc-cheat-state (structure)
   ((progress-speed        float)
    (airlock-speed         float)
    (airlock-close-speed   float)
    (turbo-board-speed     float)
+   (speedometer-units     speedometer-units)
    (flags   pc-cheat-state-flag)
    )
   )
@@ -224,6 +234,7 @@
                               :airlock-speed 1.75
                               :airlock-close-speed 1.75
                               :turbo-board-speed 1.5
+                              :speedometer-units (speedometer-units mps)
                               ))
 
 (defmacro cheat-state-flag? (&rest flags)

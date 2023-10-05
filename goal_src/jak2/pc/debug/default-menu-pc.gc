@@ -786,6 +786,12 @@
       (set-frame-rate! *pc-settings* fps #t))
   (= (-> *pc-settings* target-fps) fps)))
 
+(defun dm-speedo-unit-pick-func ((bunit int) (msg debug-menu-msg))
+  (let ((units (/ bunit 8)))
+  (when (= msg (debug-menu-msg press))
+      (set! (-> *pc-cheat-state* speedometer-units) (the speedometer-units units)))
+  (= (-> *pc-cheat-state* speedometer-units) (the speedometer-units units))))
+
 (defun dm-msaa-pick-func ((bmsaa int) (msg debug-menu-msg))
   (let ((msaa (/ bmsaa 8)))
   (when (= msg (debug-menu-msg press))
@@ -920,6 +926,11 @@
            (flag "144" 144 dm-frame-rate-pick-func)
            (flag "165" 165 dm-frame-rate-pick-func)
            (flag "240" 240 dm-frame-rate-pick-func)
+           )
+        (menu "Units"
+           (flag "meters per second" 0 dm-speedo-unit-pick-func)
+           (flag "kilometers per hour" 1 dm-speedo-unit-pick-func)
+           (flag "miles per hour" 2 dm-speedo-unit-pick-func)
            )
          (menu "MSAA"
             (flag "Off" 1 dm-msaa-pick-func)
