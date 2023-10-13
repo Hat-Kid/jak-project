@@ -1123,6 +1123,8 @@
   (none)
   )
 
+(define *hud-speedometer* (the (pointer hud-speedometer) #f))
+
 (defun activate-hud ((arg0 target))
   (process-spawn hud-dark-eco-symbol :init hud-init-by-other :to arg0)
   (process-spawn hud-health :init hud-init-by-other :to arg0)
@@ -1131,7 +1133,7 @@
   (process-spawn hud-skill :init hud-init-by-other :to arg0)
   (process-spawn hud-gun :init hud-init-by-other :to arg0)
   ;; og:preserve-this added
-  (#when PC_PORT (process-spawn hud-speedometer :init hud-init-by-other :to arg0))
+  (#when PC_PORT (set! *hud-speedometer* (process-spawn hud-speedometer :init hud-init-by-other :to arg0)))
   0
   (none)
   )

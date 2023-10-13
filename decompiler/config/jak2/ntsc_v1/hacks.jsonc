@@ -530,7 +530,8 @@
     "(method 9 editable-region)": [
       1, 2, 3, 4, 5, 10, 11, 15, 16, 17, 18, 21, 24, 25, 30, 31, 35, 36, 37, 38,
       39, 41, 42, 44, 45, 47, 48, 49, 51, 52, 53, 54
-    ]
+    ],
+    "foreground-draw-hud": [0, 7, 8, 9, 16, 22]
   },
 
   // Sometimes the game might use format strings that are fetched dynamically,
@@ -744,7 +745,7 @@
     "generic-warp-dest",
     "generic-warp-envmap-dest",
     "generic-no-light-proc",
-    "foreground-draw-hud",
+    // "foreground-draw-hud",
     // shadow
     "shadow-execute",
     "shadow-add-double-edges",

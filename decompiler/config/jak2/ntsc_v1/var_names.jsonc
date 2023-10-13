@@ -4625,5 +4625,10 @@
     "vars": {
       "s5-0": "play-sound?"
     }
+  },
+  "foreground-draw-hud": {
+    "vars": {
+      "at-0": "fg-work"
+    }
   }
 }

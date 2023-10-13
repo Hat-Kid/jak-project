@@ -10154,5 +10154,16 @@
   "race-birth-func-texture-position-word": [
     [10, "v1", "(array int32)"],
     [1, "v1", "(array int32)"]
+  ],
+  "foreground-draw-hud": [
+    [[1, 62], "at", "foreground-work"],
+    [26, "t2", "foreground-work"],
+    [36, "a1", "foreground-work"],
+    [79, "t2", "foreground-work"],
+    [[85, 101], "t2", "vu-lights"],
+    [[90, 102], "t1", "vu-lights"],
+    [166, "a1", "int"],
+    [172, "a0", "foreground-work"],
+    [12, "t0", "foreground-work"]
   ]
 }
