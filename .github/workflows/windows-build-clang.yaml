@@ -9,6 +9,10 @@ on:
       cachePrefix:
         required: true
         type: string
+      uploadArtifacts:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -26,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install NASM
         # TODO - Simplify this with just the first command once choco 2.0 rolls out everywhere
@@ -61,6 +65,7 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
+        if: ${{ inputs.uploadArtifacts }}
         with:
           name: opengoal-windows-${{ inputs.cachePrefix }}
           if-no-files-found: error

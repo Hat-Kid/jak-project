@@ -84,15 +84,24 @@ void Loader::set_want_levels(const std::vector<std::string>& levels) {
 }
 
 /*!
+ * The game calls this to tell the loader that we absolutely want these levels active.
+ * This will NOT trigger a load!
+ */
+void Loader::set_active_levels(const std::vector<std::string>& levels) {
+  std::unique_lock<std::mutex> lk(m_loader_mutex);
+  m_active_levels = levels;
+}
+
+/*!
  * Get all levels that are in memory and used very recently.
  */
 std::vector<LevelData*> Loader::get_in_use_levels() {
   std::vector<LevelData*> result;
   std::unique_lock<std::mutex> lk(m_loader_mutex);
 
-  for (auto& lev : m_loaded_tfrag3_levels) {
-    if (lev.second->frames_since_last_used < 5) {
-      result.push_back(lev.second.get());
+  for (auto& [name, lev] : m_loaded_tfrag3_levels) {
+    if (lev->frames_since_last_used < 5) {
+      result.push_back(lev.get());
     }
   }
   return result;
@@ -249,7 +258,7 @@ void Loader::loader_thread() {
  * Load a "common" FR3 file that has non-level textures.
  * This should be called during initialization, before any threaded loading goes on.
  */
-void Loader::load_common(TexturePool& tex_pool, const std::string& name) {
+const tfrag3::Level& Loader::load_common(TexturePool& tex_pool, const std::string& name) {
   auto data = file_util::read_binary_file(m_base_path / fmt::format("{}.fr3", name));
 
   auto decomp_data = compression::decompress_zstd(data.data(), data.size());
@@ -270,6 +279,7 @@ void Loader::load_common(TexturePool& tex_pool, const std::string& name) {
   while (!done) {
     done = mls.run(tim, input);
   }
+  return *m_common_level.level;
 }
 
 bool Loader::upload_textures(Timer& timer, LevelData& data, TexturePool& texture_pool) {
@@ -374,9 +384,18 @@ const std::string* Loader::get_most_unloadable_level() {
 void Loader::update(TexturePool& texture_pool) {
   Timer loader_timer;
 
-  // only main thread can touch this.
-  for (auto& lev : m_loaded_tfrag3_levels) {
-    lev.second->frames_since_last_used++;
+  {
+    // lock because we're accessing m_active_levels
+    std::unique_lock<std::mutex> lk(m_loader_mutex);
+    // only main thread can touch this.
+    for (auto& [name, lev] : m_loaded_tfrag3_levels) {
+      if (std::find(m_active_levels.begin(), m_active_levels.end(), name) ==
+          m_active_levels.end()) {
+        lev->frames_since_last_used++;
+      } else {
+        lev->frames_since_last_used = 0;
+      }
+    }
   }
 
   bool did_gpu_stuff = false;

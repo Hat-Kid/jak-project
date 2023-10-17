@@ -97,6 +97,7 @@ struct Config {
   std::vector<std::string> dgo_names;
   std::vector<std::string> object_file_names;
   std::vector<std::string> str_file_names;
+  std::vector<std::string> str_texture_file_names;
 
   std::string audio_dir_file_name;
   std::vector<std::string> streamed_audio_file_names;
@@ -115,6 +116,7 @@ struct Config {
   bool process_subtitle_text = false;
   bool process_subtitle_images = false;
   bool dump_art_group_info = false;
+  bool dump_joint_geo_info = false;
   bool rip_levels = false;
   bool extract_collision = false;
   bool find_functions = false;
@@ -159,14 +161,19 @@ struct Config {
 
   std::unordered_map<std::string, int> bad_format_strings;
 
+  std::unordered_set<std::string> animated_textures;
+  std::unordered_set<int> common_tpages;
+
   std::vector<std::string> levels_to_extract;
   bool levels_extract;
+  bool save_texture_pngs = false;
 
   DecompileHacks hacks;
 
-  std::unordered_map<std::string, std::string> art_groups_by_file;
-  std::unordered_map<std::string, std::string> art_groups_by_function;
+  std::unordered_map<std::string, std::string> art_group_type_remap;
   std::unordered_map<std::string, std::unordered_map<int, std::string>> art_group_info_dump;
+  std::unordered_map<std::string, std::unordered_map<int, std::string>> jg_info_dump;
+  std::unordered_map<std::string, std::string> joint_node_hacks;
 
   std::unordered_map<std::string, std::vector<std::string>> import_deps_by_file;
 };

@@ -6,12 +6,14 @@ in vec4 fragment_color;
 in vec3 tex_coord;
 flat in uint use_uv;
 in vec4 gs_scissor;
-uniform float alpha_reject;
+uniform float alpha_min;
+uniform float alpha_max;
 uniform float color_mult;
 uniform float alpha_mult;
 uniform float alpha_sub;
 uniform float ta0;
 uniform int scissor_enable;
+uniform bool greater;
 // game width, game height, viewport width, viewport height
 uniform vec4 game_sizes;
 
@@ -27,10 +29,12 @@ vec4 sample_tex(vec2 coord, uint unit) {
 }
 
 vec4 sample_tex_px(vec2 coordf, uint unit) {
-  ivec2 coord;
-  coord.x = int(coordf.x / 16);
-  coord.y = int(coordf.y / 16);
-  return texelFetch(tex_T20, coord, 0);
+  // note: there is still fractional texels and filtering in this mode.
+  vec2 coord_px = coordf / 16.f;
+  vec2 tex_size = vec2(textureSize(tex_T20, 0));
+  // but texture perspective correction is disabled.
+  // current uses are on quads with the same z so it doesn't really matter.
+  return textureProj(tex_T20, vec4(coord_px / tex_size, 1, 1));
 }
 
 void main() {
@@ -82,8 +86,18 @@ void main() {
   color *= 2;
   color.xyz *= color_mult;
   color.w *= alpha_mult;
-  if (color.a < alpha_reject) {
-    discard;
+  if (greater) {
+    // pass if alpha > min, so discard if alpha <= min
+    // greater than check should use the opposite, so alpha values equal to aref are only passed once for
+    // any double-draw
+    if (color.a <= alpha_min || color.a > alpha_max) {
+      discard;
+    }
+  } else {
+    // and this is just flipped from the case above.
+    if (color.a < alpha_min || color.a >= alpha_max) {
+      discard;
+    }
   }
   if (tex_info.w == 1) {
     color.xyz = mix(color.xyz, fog_color.rgb, clamp(fog_color.a * fog, 0, 1));

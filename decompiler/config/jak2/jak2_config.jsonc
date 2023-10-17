@@ -42,6 +42,8 @@
   "process_art_groups": false,
   // write out a json file containing the art info mapping, run this with all objects allowed
   "dump_art_group_info": false,
+  // write out a json file containing the joint node mapping, run this with all objects allowed
+  "dump_joint_geo_info": false,
 
   // set to false to skip adding .STR files to the decompiler database
   "read_spools": false,
@@ -98,6 +100,7 @@
   "import_deps_file": "decompiler/config/jak2/ntsc_v1/import_deps.jsonc",
   "all_types_file": "decompiler/config/jak2/all-types.gc",
   "art_group_dump_file": "decompiler/config/jak2/ntsc_v1/art-group-info.min.json",
+  "joint_node_dump_file": "decompiler/config/jak2/ntsc_v1/joint-node-info.min.json",
 
   // optional: a predetermined object file name map from a file.
   // this will make decompilation naming consistent even if you only run on some objects.
@@ -114,6 +117,8 @@
   // should we extract collision meshes?
   // these can be displayed in game, but makes the .fr3 files slightly larger
   "extract_collision": true,
+
+  "save_texture_pngs": false,
 
   ////////////////////////////
   // PATCHING OPTIONS
@@ -134,14 +139,12 @@
       "game_name": "jak2_pal",
       "expected_elf_name": "SCES_516.08",
       "is_pal": true,
-      "obj_file_name_map_file": "goal_src/jak2/build/all_objs.json",
       "object_patches": {}
     },
     "ntsc_v2": {
       "game_name": "jak2_us2",
       "label_types_merge_file": "decompiler/config/jak2/ntsc_v2/label_types.jsonc",
       "anonymous_function_types_merge_file": "decompiler/config/jak2/ntsc_v2/anonymous_function_types.jsonc",
-      "obj_file_name_map_file": "goal_src/jak2/build/all_objs.json",
       "object_patches": {}
     },
     "jp": {

@@ -38,7 +38,7 @@ bool is_type(const std::string& expected, const TypeSpec& actual, const TypeSyst
 
 std::string symbol_string(const goos::Object& obj) {
   if (obj.is_symbol()) {
-    return obj.as_symbol()->name;
+    return obj.as_symbol().name_ptr;
   }
   throw std::runtime_error(obj.print() + " was supposed to be a symbol, but isn't");
 }
@@ -48,8 +48,8 @@ std::string symbol_string(const goos::Object& obj) {
 EnumType* parse_defenum(const goos::Object& defenum,
                         TypeSystem* ts,
                         DefinitionMetadata* symbol_metadata) {
-  // default enum type will be int32.
-  TypeSpec base_type = ts->make_typespec("int32");
+  // default enum type will be int64
+  TypeSpec base_type = ts->make_typespec("int64");
   bool is_bitfield = false;
   std::unordered_map<std::string, s64> entries;
 
@@ -69,7 +69,7 @@ EnumType* parse_defenum(const goos::Object& defenum,
   if (!enum_name_obj.is_symbol()) {
     throw std::runtime_error("defenum must be given a symbol as its name");
   }
-  std::string name = enum_name_obj.as_symbol()->name;
+  std::string name = enum_name_obj.as_symbol().name_ptr;
 
   auto current = car(iter);
   while (current.is_symbol() && symbol_string(current).at(0) == ':') {

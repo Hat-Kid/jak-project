@@ -84,32 +84,6 @@
   )
 
 
-
-;; cheats
-(defconstant PC_CHEAT_MAX 18) ;; number of cheats
-(defenum pc-cheats
-  :bitfield #t
-  :type uint64
-  (eco-green)
-  (eco-red)
-  (eco-blue)
-  (eco-yellow)
-  (invinc)
-  (sidekick-blue)
-  (tunes)
-  (sky)
-  (mirror)
-  (big-head)
-  (small-head)
-  (big-fist)
-  (no-tex)
-  (hard-rats)
-  (hero-mode)
-  (huge-head)
-  (big-head-npc)
-  (oh-my-goodness)
-  )
-
 (defmacro pc-cheats? (obj &rest cheats)
   `(logtest? ,obj (pc-cheats ,@cheats)))
 
@@ -165,12 +139,14 @@
    (os symbol) ;; windows, linux, macos
    (user symbol) ;; username. not system username, just debug thing.
    (debug? symbol) ;; more debug stuff just in case.
+   (debug-font-scale        float)  ;; debug font scaling factor.
+   (debug-font-scale-auto?  symbol) ;; auto-scale debug font by screen height.
 
    ;; device settings
    (ignore-controller-win-unfocused? symbol)
-   (controller-hp-led?    symbol)
-   (controller-eco-led?   symbol)
-   (controller-heat-led?  symbol)
+   (controller-led-hp?    symbol)
+   (controller-led-eco?   symbol)
+   (controller-led-heat?  symbol)
    (controller-led-brightness     float)
    (controller-led-min-brightness float)
    (controller-led-max-brightness float)
@@ -214,7 +190,7 @@
    (lod-force-actor int8) ;; merc lod tier override
 
    ;; misc settings
-   (force-actors? symbol) ;; skips vis check for actor entity
+   (ps2-actor-vis? symbol) ;; skips vis check for actor entity if disabled
    (use-vis? symbol) ;; if off, don't use vis trees. this MUST be off for custom (non-cropping) aspect ratios.
    (hinttitles? symbol) ;; if on, non-cutscene subtitles will show up
    (subtitle-speaker? symbol) ;; #f (force off), #t (force on), auto (on for offscreen)
@@ -222,16 +198,15 @@
    (first-camera-v-inverted? symbol) ;; first-person vertical camera inverted
    (third-camera-h-inverted? symbol) ;; third-person horizontal camera inverted
    (third-camera-v-inverted? symbol) ;; third-person vertical camera inverted
-   (music-fadeout? symbol) ;; music fadeout toggle.
-   (music-fadein? symbol) ;; music fadein toggle.
+   (music-fadeout?  symbol) ;; music fadeout toggle.
+   (music-fadein?   symbol) ;; music fadein toggle.
+   
+   (territory   int16)
 
    (bingo pc-bingo-info :inline) ;; bingo integration. does nothing for now.
 
    (discord-rpc? symbol) ;; enable discord rich presence integration
    (speedrunner-mode? symbol) ;; enable speedrunner mode
-
-   (cheats pc-cheats)
-   (cheats-known pc-cheats)
 
    (flava-hack int64)
 
@@ -240,6 +215,7 @@
 
   (:methods
     (new (symbol type) _type_)
+    (initialize (_type_) _type_)
     (update (_type_) none)
     (update-from-os (_type_) none)
     (update-to-os (_type_) none)
@@ -283,6 +259,7 @@
     (set-ignore-controller-in-bg! (_type_ symbol) none)
     (set-enable-keyboard! (_type_ symbol) none)
     (update-mouse-controls! (_type_) none)
+    (debug-font-scale-factor (_type_) float)
     )
   )
 
@@ -298,10 +275,17 @@
 
 (define *display-actor-bank* #f)
 (define *display-pad-debug* #f)
+(define *display-led* #f)
+(define *display-led-rgba* (new 'static 'rgba))
 (define *display-heap-status* #f)
 (define *display-actor-counts* #f)
 (define *display-text-box* #f)
 (define *display-sha* *debug-segment*)
+
+;; collision renderer things. debug only.
+(define *collision-renderer* #f)
+(define *collision-wireframe* #f)
+(define *collision-mode* (pc-collision-mode mode))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -329,6 +313,8 @@
   (set! (-> obj aspect-custom-y) 3)
   (set! (-> obj discord-rpc?) #t)
   (set! (-> obj speedrunner-mode?) #f)
+  (set! (-> obj debug-font-scale) 1.0)
+  (set! (-> obj debug-font-scale-auto?) #t)
 
   (reset-gfx obj call-handlers)
   (reset-audio obj call-handlers)
@@ -356,9 +342,10 @@
   (set! (-> obj vsync?) #t)
   (set! (-> obj letterbox?) #t)
 
-  ;; get screen size and set to borderless at screen res
+  ;; get screen size and set to borderless at screen res (if retail)
   (pc-get-active-display-size (&-> obj width) (&-> obj height))
-  (set-display-mode! obj 'borderless call-handlers)
+  (if (not *debug-segment*)
+      (set-display-mode! obj 'borderless call-handlers))
   (set! (-> obj gfx-msaa) PC_DEFAULT_MSAA) ;; default msaa
   0)
 
@@ -379,9 +366,9 @@
 
   (when (or (= device 'all) (= device 'controller))
     (set! (-> obj ignore-controller-win-unfocused?) #f)
-    (set! (-> obj controller-hp-led?) #t)
-    (set! (-> obj controller-eco-led?) #t)
-    (set! (-> obj controller-heat-led?) #t)
+    (set! (-> obj controller-led-hp?) #t)
+    (set! (-> obj controller-led-eco?) #t)
+    (set! (-> obj controller-led-heat?) #t)
     (set! (-> obj stick-deadzone) 0.3)
     (set! (-> obj controller-led-brightness) 1.0)
     (set! (-> obj controller-led-min-brightness) 0.25)
@@ -424,10 +411,12 @@
 (defmethod reset-misc pc-settings ((obj pc-settings) (call-handlers symbol))
   "Set the default misc settings"
 
-  (set! (-> obj force-actors?) #f)
+  (set! (-> obj ps2-actor-vis?) #t)
   (set! (-> obj hinttitles?) #t)
   (set! (-> obj subtitle-speaker?) 'auto)
   (reset-camera obj call-handlers)
+
+  (set! (-> obj territory) *default-territory*)
   0)
 
 (defmethod reset-camera pc-settings ((obj pc-settings) (call-handlers symbol))
@@ -442,8 +431,6 @@
 (defmethod reset-extra pc-settings ((obj pc-settings) (call-handlers symbol))
   "Set the default goodies settings"
 
-  (set! (-> obj cheats) (pc-cheats))
-  (set! (-> obj cheats-known) (pc-cheats))
   0)
 
 (defmacro with-pc (&rest body)
@@ -452,6 +439,17 @@
       ,@body
       ))
   )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; quick helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(defmacro get-debug-font-scale-factor ()
+  "return the debug font scale factor to be used."
+  `(debug-font-scale-factor *pc-settings*))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

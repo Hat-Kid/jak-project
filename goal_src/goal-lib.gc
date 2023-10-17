@@ -461,7 +461,7 @@
 
   (with-gensyms (sw)
     ;; save the switch to a variable (only evaluated once)
-    `(let ((sw ,switch))
+    `(let ((,sw ,switch))
         ;; build the cond construct with each case
         (cond ,@(apply
                   (lambda (x) `(
@@ -476,11 +476,11 @@
                             )
                           ;; if the list is made up of a single condition
                           ( (= (length conditions) 1)
-                            `((,comp sw ,(first conditions)) ,@body)
+                            `((,comp ,sw ,(first conditions)) ,@body)
                             )
                           ;; otherwise it is made up of multiple conditions, or them together!
                           (#t
-                            `((or ,@(apply (lambda (c) `(,comp sw ,c)) conditions)) ,@body)
+                            `((or ,@(apply (lambda (c) `(,comp ,sw ,c)) conditions)) ,@body)
                             )
                           )
 
@@ -509,6 +509,26 @@
       )
   )
 
+
+(defmacro the-as-safe (type obj)
+  (with-gensyms (temp)
+    `(let ((,temp ,obj))
+        (if (type? ,temp ,type)
+            (the-as ,type ,temp))
+        )
+    )
+  )
+
+(defmacro eq-any? (val &rest pred)
+  "is val equal to any of the values in pred? evaluated using or, so it short circuits."
+  (with-gensyms (val-var)
+  `(let ((,val-var ,val))
+    (or ,@(apply (lambda (x) `(= ,val-var ,x)) pred)))
+    )
+  )
+
+
+
 ;;;;;;;;;;;;;;;;;;;
 ;; Math Macros
 ;;;;;;;;;;;;;;;;;;;
@@ -529,6 +549,10 @@
   `(+! ,place 1)
   )
 
+(defmacro inc! (place)
+  `(+! ,place 1)
+  )
+
 (defmacro 1- (var)
   `(+ ,var -1)
   )
@@ -542,6 +566,10 @@
   )
 
 (defmacro 1-! (place)
+  `(-! ,place 1)
+  )
+
+(defmacro dec! (place)
   `(-! ,place 1)
   )
 
@@ -906,6 +934,11 @@
   `(make-group "text")
   )
 
+;; the default territory the game was built for. overriden in extractor.
+;; this just fetches the goos constant with the same name (TODO fix this)
+(defmacro __get_default_territory () *default-territory*)
+(defconstant *default-territory* (__get_default_territory))
+
 ;;;;;;;;;;;;;;;;;;;
 ;; enum stuff
 ;;;;;;;;;;;;;;;;;;;
@@ -987,10 +1020,6 @@
 ;;;; user stuf
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmacro get-user ()
-  `(quote ,*user*)
-  )
-
 (defmacro user? (&rest users)
   (cond
     ((null? users)            #f)
@@ -1035,6 +1064,38 @@
     )
   ;; define a constant for it!
   `(defconstant ,name (-> self draw art-group data ,idx))
+  )
+
+(defmacro def-joint-node (jg name idx)
+  "define a new joint node for a joint geo. adds it to a global map stored in goos."
+  ;; grab data about the joint geo
+  (let* ((jg-string (symbol->string jg))
+         (name-string name)
+         (jg-info-lookup (hash-table-try-ref *jg-info* jg-string))
+         (jg-info-exists (car jg-info-lookup))
+         (jg-info (cdr jg-info-lookup))
+         )
+    ;; no joint geo was found, make a new one and add it.
+    (when (not jg-info-exists)
+      (set! jg-info (make-string-hash-table))
+      (hash-table-set! *jg-info* jg-string jg-info)
+      )
+    ;; lookup name in our joint geo
+    (let* ((joint-name-lookup (hash-table-try-ref jg-info name-string))
+           (joint-name-exists (car joint-name-lookup))
+           (joint-new (list name idx))) ;; this is the format of the individual entries
+      ;; found, check if valid
+      (if (and joint-name-exists (not (eq? (cdr joint-name-lookup) joint-new)))
+          (fmt #t "error redefining joint. data mismatch: {}\n" joint-new)
+          #f)
+      ;; not found. add to the joint geo.
+      (when (not joint-name-exists)
+        (hash-table-set! jg-info name-string joint-new)
+        )
+      )
+    )
+  ;; `(defconstant ,name (-> self node-list data ,idx))
+  `(empty)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -43,7 +43,9 @@
 
 constexpr bool run_dma_copy = false;
 
-constexpr PerGameVersion<int> fr3_level_count(jak1::LEVEL_TOTAL, jak2::LEVEL_TOTAL);
+constexpr PerGameVersion<int> fr3_level_count(jak1::LEVEL_TOTAL,
+                                              jak2::LEVEL_TOTAL,
+                                              jak3::LEVEL_TOTAL);
 
 struct GraphicsData {
   // vsync
@@ -83,7 +85,7 @@ struct GraphicsData {
             file_util::get_jak_project_dir() / "out" / game_version_names[version] / "fr3",
             fr3_level_count[version])),
         ogl_renderer(texture_pool, loader, version),
-        debug_gui(version),
+        debug_gui(),
         version(version) {}
 };
 
@@ -326,7 +328,7 @@ GLDisplay::GLDisplay(SDL_Window* window, SDL_GLContext gl_context, bool is_main)
   m_display_manager->set_input_manager(m_input_manager);
   // Register commands
   m_input_manager->register_command(CommandBinding::Source::KEYBOARD,
-                                    CommandBinding(SDLK_F12, [&]() {
+                                    CommandBinding(Gfx::g_debug_settings.hide_imgui_key, [&]() {
                                       if (!Gfx::g_debug_settings.ignore_hide_imgui) {
                                         set_imgui_visible(!is_imgui_visible());
                                       }
@@ -697,7 +699,7 @@ void gl_texture_upload_now(const u8* tpage, int mode, u32 s7_ptr) {
     // just pass it to the texture pool.
     // the texture pool will take care of locking.
     // we don't want to lock here for the entire duration of the conversion.
-    g_gfx_data->texture_pool->handle_upload_now(tpage, mode, g_ee_main_mem, s7_ptr);
+    g_gfx_data->texture_pool->handle_upload_now(tpage, mode, g_ee_main_mem, s7_ptr, false);
   }
 }
 
@@ -715,6 +717,10 @@ void gl_set_levels(const std::vector<std::string>& levels) {
   g_gfx_data->loader->set_want_levels(levels);
 }
 
+void gl_set_active_levels(const std::vector<std::string>& levels) {
+  g_gfx_data->loader->set_active_levels(levels);
+}
+
 void gl_set_pmode_alp(float val) {
   g_gfx_data->pmode_alp = val;
 }
@@ -729,6 +735,7 @@ const GfxRendererModule gRendererOpenGL = {
     gl_texture_upload_now,  // texture_upload_now
     gl_texture_relocate,    // texture_relocate
     gl_set_levels,          // set_levels
+    gl_set_active_levels,   // set_active_levels
     gl_set_pmode_alp,       // set_pmode_alp
     GfxPipeline::OpenGL,    // pipeline
     "OpenGL 4.3"            // name

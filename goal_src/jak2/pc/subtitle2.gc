@@ -418,7 +418,7 @@
     (when (-> self queue i gui)
       (let ((pos (current-subtitle2-pos (-> self queue i id))))
         (when (and (zero? q) *debug-segment*)
-            (format *stdcon* "subtitle pos: ~3L~D~0L (~S)~%" (the int pos) (-> self queue i gui name)))
+            (format *stdcon0* "subtitle pos: ~3L~D~0L (~S)~%" (the int pos) (-> self queue i gui name)))
 
         (let ((scene (get-scene-by-name *subtitle2-text* (-> self queue i gui name))))
         (when scene
@@ -500,21 +500,21 @@
 
 (when *debug-segment*
 (defmethod debug-print-queue subtitle2 ((self subtitle2))
-  "print the queue to *stdcon*"
+  "print the queue to *stdcon0*"
   
-  (format *stdcon* "q: ~%")
+  (format *stdcon0* "q: ~%")
   (dotimes (i PC_SUBTITLE_QUEUE_SIZE)
     (if (-> self queue i gui)
-        (format *stdcon* "~D: ~S ~3L~D~0L ~D ~`gui-connection`P~%" i
+        (format *stdcon0* "~D: ~S ~3L~D~0L ~D ~`gui-connection`P~%" i
                                                                    (-> self queue i gui name)
                                                                    (the int (current-subtitle2-pos (-> self queue i id)))
                                                                    (-> self queue i id)
                                                                    (-> self queue i gui))))
 
-  (format *stdcon* "l: ~%")
+  (format *stdcon0* "l: ~%")
   (let ((line-queue (if (zero? (-> self line-queue-idx)) (-> self lines 0) (-> self lines 1))))
       (dotimes (i PC_SUBTITLE_MAX_LINES)
-        (format *stdcon* "~D: ~D ~S~%" i (the int (-> line-queue elts i y)) (aif (-> line-queue elts i line) (-> it text)))))
+        (format *stdcon0* "~D: ~D ~S~%" i (the int (-> line-queue elts i y)) (aif (-> line-queue elts i line) (-> it text)))))
 
   0)
 
@@ -635,8 +635,7 @@
         (set! (-> self movie-mode?) #f)
         (clear-queue self))
       )
-
-    (none))
+    )
 
   :post (behavior ()
 
@@ -660,6 +659,14 @@
 
 
 (defstate subtitle2-debug (subtitle2)
+
+    :enter (behavior ()
+      (process-mask-clear! (-> self mask) pause)
+      )
+    :exit (behavior ()
+      (unless (= (-> self next-state name) 'subtitle2-debug-checking-lines)
+        (process-mask-set! (-> self mask) pause))
+      )
 
     :trans (behavior ()
 
@@ -737,8 +744,7 @@
           (set-master-mode 'game)
           (go subtitle2-process)
           )
-
-      (none))
+      )
 
     :code (-> subtitle2-process code)
     :post (behavior ()
@@ -763,7 +769,7 @@
       (set! (-> self have-minimap?) #f)
       (set! (-> self have-subtitles?) #f)
       (setup-subtitle2-font (-> self font))
-      (none))
+      )
 
     :code (behavior ()
       (protect ((-> *pc-settings* subtitle-speaker?))
@@ -829,7 +835,7 @@
   (process-mask-clear! (-> self mask) menu)
 
   (set! (-> self font) (new 'process 'font-context *font-default-matrix*
-                            0 0 0.0 (font-color default) (font-flags shadow kerning left middle large)))
+                            0 0 0.0 (font-color default) (font-flags shadow kerning middle-vert middle large)))
   (clear-queue self)
   (dotimes (i PC_SUBTITLE_MAX_LINES)
     (set! (-> self lines 0 elts i line) #f)

@@ -6,7 +6,9 @@
 #include "common/global_profiler/GlobalProfiler.h"
 
 #include "game/graphics/gfx.h"
+#include "game/system/hid/sdl_util.h"
 
+#include "third-party/fmt/core.h"
 #include "third-party/imgui/imgui.h"
 #include "third-party/imgui/imgui_style.h"
 
@@ -102,6 +104,9 @@ void OpenGlDebugGui::draw(const DmaStats& dma_stats) {
       ImGui::MenuItem("Profiler", nullptr, &m_draw_profiler);
       ImGui::MenuItem("Small Profiler", nullptr, &small_profiler);
       ImGui::MenuItem("Loader", nullptr, &m_draw_loader);
+      if (ImGui::MenuItem("Reboot In Debug Mode!")) {
+        want_reboot_in_debug = true;
+      }
       ImGui::EndMenu();
     }
 
@@ -116,6 +121,7 @@ void OpenGlDebugGui::draw(const DmaStats& dma_stats) {
         ImGui::EndMenu();
       }
       ImGui::MenuItem("Subtitle Editor", nullptr, &m_subtitle_editor);
+      ImGui::MenuItem("Debug Text Filter", nullptr, &m_filters_menu);
       ImGui::EndMenu();
     }
 
@@ -133,7 +139,7 @@ void OpenGlDebugGui::draw(const DmaStats& dma_stats) {
         ImGui::TreePop();
       }
       ImGui::Checkbox("Ignore Hide ImGui Bind", &Gfx::g_debug_settings.ignore_hide_imgui);
-      if (ImGui::BeginMenu("Frame Rate")) {
+      if (ImGui::TreeNode("Frame Rate")) {
         ImGui::Checkbox("Framelimiter", &Gfx::g_global_settings.framelimiter);
         ImGui::InputFloat("Target FPS", &target_fps_input);
         if (ImGui::MenuItem("Apply")) {
@@ -142,9 +148,9 @@ void OpenGlDebugGui::draw(const DmaStats& dma_stats) {
         ImGui::Separator();
         ImGui::Checkbox("Accurate Lag Mode", &Gfx::g_global_settings.experimental_accurate_lag);
         ImGui::Checkbox("Sleep in Frame Limiter", &Gfx::g_global_settings.sleep_in_frame_limiter);
-        ImGui::EndMenu();
+        ImGui::TreePop();
       }
-      ImGui::MenuItem("Filters", nullptr, &m_filters_menu);
+      ImGui::Checkbox("Treat Pad0 as Pad1", &Gfx::g_debug_settings.treat_pad0_as_pad1);
       ImGui::EndMenu();
     }
 
@@ -156,11 +162,11 @@ void OpenGlDebugGui::draw(const DmaStats& dma_stats) {
       ImGui::EndMenu();
     }
 
-    if (ImGui::BeginMenu("Debug Mode")) {
-      if (ImGui::MenuItem("Reboot now!")) {
-        want_reboot_in_debug = true;
-      }
-      ImGui::EndMenu();
+    if (!Gfx::g_debug_settings.ignore_hide_imgui) {
+      ImGui::Text("%s", fmt::format("Toggle toolbar with {}",
+                                    sdl_util::get_keyboard_button_name(
+                                        Gfx::g_debug_settings.hide_imgui_key, InputModifiers()))
+                            .c_str());
     }
   }
   ImGui::EndMainMenuBar();

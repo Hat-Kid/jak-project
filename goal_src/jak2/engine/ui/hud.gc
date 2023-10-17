@@ -749,7 +749,7 @@
   )
 
 (defmethod alloc-string-if-needed hud ((obj hud) (arg0 int))
-  ;; jp patch here (32 -> 64)
+  ;; og:preserve-this jp patch here (32 -> 64)
   (if (not (-> obj strings arg0 text))
       (set! (-> obj strings arg0 text) (new 'process 'string 64 (the-as string #f)))
       )
@@ -1108,7 +1108,7 @@
   )
 
 (defun show-hud ((arg0 object))
-  (when (and *target* (or (not *progress-process*) (is-gone (-> *progress-process* 0))))
+  (when (and *target* (or (not *progress-process*) (gone? (-> *progress-process* 0))))
     (let ((v1-7 (-> *hud-engine* alive-list next0)))
       *hud-engine*
       (let ((s5-0 (-> v1-7 next0)))

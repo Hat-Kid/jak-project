@@ -68,7 +68,15 @@ int scePadRead(int port, int /*slot*/, u8* rdata) {
 
   std::optional<std::shared_ptr<PadData>> pad_data = std::nullopt;
   if (Display::GetMainDisplay()) {
-    pad_data = Display::GetMainDisplay()->get_input_manager()->get_current_data(port);
+    if (Gfx::g_debug_settings.treat_pad0_as_pad1) {
+      if (port == 0) {
+        pad_data = Display::GetMainDisplay()->get_input_manager()->get_current_data(1);
+      } else {
+        pad_data = Display::GetMainDisplay()->get_input_manager()->get_current_data(0);
+      }
+    } else {
+      pad_data = Display::GetMainDisplay()->get_input_manager()->get_current_data(port);
+    }
   }
 
   if (pad_data) {
@@ -98,7 +106,8 @@ int scePadSetActDirect(int port, int /*slot*/, const u8* data) {
     if (!Display::GetMainDisplay()->get_input_manager()->controller_has_rumble(port)) {
       return 0;
     }
-    Display::GetMainDisplay()->get_input_manager()->enqueue_update_rumble(port, data[1], data[0]);
+    Display::GetMainDisplay()->get_input_manager()->enqueue_update_rumble(port, data[1],
+                                                                          data[0] * 255);
     return 1;  // TODO - assuming 1 means rumble is supported, and 0 is no?
   }
   return 0;

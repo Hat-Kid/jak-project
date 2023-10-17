@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include "fileio.h"
+
 #include "common/common_types.h"
 #include "common/global_profiler/GlobalProfiler.h"
 #include "common/goal_constants.h"
@@ -13,10 +15,8 @@
 #include "game/kernel/common/fileio.h"
 #include "game/kernel/common/kdsnetm.h"
 #include "game/kernel/common/klink.h"
-#include "game/kernel/common/kmalloc.h"
 #include "game/kernel/common/kmemcard.h"
 #include "game/kernel/common/kprint.h"
-#include "game/kernel/common/kscheme.h"
 #include "game/kernel/jak2/kdgo.h"
 #include "game/kernel/jak2/klink.h"
 #include "game/kernel/jak2/klisten.h"
@@ -276,10 +276,24 @@ u64 make_debug_string_from_c(const char* c_str) {
 }
 
 extern "C" {
+#ifndef __aarch64__
 #ifdef __APPLE__
 void _arg_call_systemv() asm("_arg_call_systemv");
+void _stack_call_systemv() asm("_stack_call_systemv");
+void _stack_call_win32() asm("_stack_call_win32");
 #else
 void _arg_call_systemv();
+void _stack_call_systemv();
+void _stack_call_win32();
+#endif
+#else
+#if defined(__APPLE__)
+void _arg_call_arm64() asm("_arg_call_arm64");
+void _stack_call_arm64() asm("_stack_call_arm64");
+#else
+void _arg_call_arm64();
+void _stack_call_arm64();
+#endif
 #endif
 }
 
@@ -292,8 +306,13 @@ Ptr<Function> make_function_from_c_systemv(void* func, bool arg3_is_pp) {
                                        u32_in_fixed_sym(FIX_SYM_FUNCTION_TYPE), 0x40, UNKNOWN_PP));
   auto f = (uint64_t)func;
   auto target_function = (u8*)&f;
+#ifndef __aarch64__
   auto trampoline_function_addr = _arg_call_systemv;
+#else
+  auto trampoline_function_addr = _arg_call_arm64;
+#endif
   auto trampoline = (u8*)&trampoline_function_addr;
+  // TODO - x86 code still being emitted below
 
   // movabs rax, target_function
   int offset = 0;
@@ -393,23 +412,17 @@ Ptr<Function> make_function_from_c_win32(void* func, bool arg3_is_pp) {
   return mem.cast<Function>();
 }
 
-extern "C" {
-#ifdef __APPLE__
-void _stack_call_systemv() asm("_stack_call_systemv");
-void _stack_call_win32() asm("_stack_call_win32");
-#else
-void _stack_call_systemv();
-void _stack_call_win32();
-#endif
-}
-
 Ptr<Function> make_stack_arg_function_from_c_systemv(void* func) {
   // allocate a function object on the global heap
   auto mem = Ptr<u8>(alloc_heap_object(s7.offset + FIX_SYM_GLOBAL_HEAP,
                                        u32_in_fixed_sym(FIX_SYM_FUNCTION_TYPE), 0x40, UNKNOWN_PP));
   auto f = (uint64_t)func;
   auto target_function = (u8*)&f;
+#ifndef __aarch64__
   auto trampoline_function_addr = _stack_call_systemv;
+#else
+  auto trampoline_function_addr = _stack_call_arm64;
+#endif
   auto trampoline = (u8*)&trampoline_function_addr;
 
   // movabs rax, target_function
@@ -439,6 +452,7 @@ Ptr<Function> make_stack_arg_function_from_c_systemv(void* func) {
   return mem.cast<Function>();
 }
 
+#ifdef _WIN32
 /*!
  * Create a GOAL function from a C function.  This calls a windows function, but doesn't scramble
  * the argument order.  It's supposed to be used with _format_win32 which assumes GOAL order.
@@ -479,6 +493,7 @@ Ptr<Function> make_stack_arg_function_from_c_win32(void* func) {
 
   return mem.cast<Function>();
 }
+#endif
 
 /*!
  * Create a GOAL function from a C function. This doesn't export it as a global function, it just
@@ -1784,11 +1799,20 @@ u64 loadc(const char* /*file_name*/, kheapinfo* /*heap*/, u32 /*flags*/) {
   return 0;
 }
 
-u64 loado(u32 file_name_in, u32 /*heap_in*/) {
-  // ASSERT(false);
+// NOTE: copied from jak 1
+u64 loado(u32 file_name_in, u32 heap_in) {
+  char loadName[272];
   Ptr<String> file_name(file_name_in);
+  Ptr<kheapinfo> heap(heap_in);
   printf("****** CALL TO loado(%s) ******\n", file_name->data());
-  return s7.offset;
+  kstrcpy(loadName, MakeFileName(DATA_FILE_TYPE, file_name->data(), 0));
+  s32 returnValue = load_and_link(file_name->data(), loadName, heap.c(), LINK_FLAG_PRINT_LOGIN);
+
+  if (returnValue < 0) {
+    return s7.offset;
+  } else {
+    return returnValue;
+  }
 }
 
 /*!
@@ -1799,11 +1823,14 @@ u64 unload(u32 name) {
   return 0;
 }
 
-s64 load_and_link(const char* /*filename*/,
-                  char* /*decode_name*/,
-                  kheapinfo* /*heap*/,
-                  u32 /*flags*/) {
-  ASSERT(false);
-  return 0;
+// NOTE: copied from jak 1
+s64 load_and_link(const char* filename, char* decode_name, kheapinfo* heap, u32 flags) {
+  (void)filename;
+  s32 sz;
+  auto rv = FileLoad(decode_name, make_ptr(heap), Ptr<u8>(0), KMALLOC_ALIGN_64, &sz);
+  if (((s32)rv.offset) > -1) {
+    return (s32)link_and_exec(rv, decode_name, sz, make_ptr(heap), flags, false).offset;
+  }
+  return (s32)rv.offset;
 }
 }  // namespace jak2

@@ -225,20 +225,22 @@
     )
   )
 
-(defsmacro let (bindings &rest body)
-  `((lambda ,(apply first bindings) ,@body)
-    ,@(apply second bindings)))
+;; These are now implemented in Interpreter.cpp for speed.
+;; But I leave these here because it was cool to implement them in GOOS itself.
+; (defsmacro let (bindings &rest body)
+;   `((lambda ,(apply first bindings) ,@body)
+;     ,@(apply second bindings)))
 
-(defsmacro let* (bindings &rest body)
-  (if (null? bindings)
-      `(begin ,@body)
-      `((lambda (,(caar bindings))
-	  (let* ,(cdr bindings) ,@body))
-	;;(begin ,@(cdar bindings))
-	,(car (cdar bindings))
-	)
-      )
-  )
+; (defsmacro let* (bindings &rest body)
+;   (if (null? bindings)
+;     `(begin ,@body)
+;     `((lambda (,(caar bindings))
+;      (let* ,(cdr bindings) ,@body))
+; 	;;(begin ,@(cdar bindings))
+; 	,(car (cdar bindings))
+; 	)
+;     )
+;   )
 
 (defsmacro dotimes (var &rest body)
   `(let (( ,(first var) 0))
@@ -491,6 +493,9 @@
 ;; a map for art definitions used by art loading code.
 (define *art-info* (make-string-hash-table))
 
+;; a map for joint node names used by art loading code.
+(define *jg-info* (make-string-hash-table))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  build system      ;;
@@ -499,9 +504,10 @@
 (define GAME_TERRITORY_SCEA 0)
 (define GAME_TERRITORY_SCEE 1)
 (define GAME_TERRITORY_SCEI 2)
+(define GAME_TERRITORY_SCEK 3)
 
 (define *jak1-full-game* (if (user? dass) #t #f))
-(define *jak1-territory* GAME_TERRITORY_SCEA)
+(define *default-territory* GAME_TERRITORY_SCEA)
 
 ;; whether to enable ps3 test levels for jak 2
 (define USE_PS3_LEVELS #f)

@@ -156,6 +156,8 @@ std::optional<LSPSpec::Hover> hover_handler_ir(Workspace& workspace,
     hover_resp.m_contents = markup;
     return hover_resp;
   }
+
+  return {};
 }
 
 std::string truncate_docstring(const std::string& docstring) {
@@ -171,7 +173,7 @@ std::string truncate_docstring(const std::string& docstring) {
   return truncated;
 }
 
-std::optional<json> hover_handler(Workspace& workspace, int id, json raw_params) {
+std::optional<json> hover_handler(Workspace& workspace, int /*id*/, json raw_params) {
   auto params = raw_params.get<LSPSpec::TextDocumentPositionParams>();
   auto file_type = workspace.determine_filetype_from_uri(params.m_textDocument.m_uri);
 
@@ -219,9 +221,9 @@ std::optional<json> hover_handler(Workspace& workspace, int id, json raw_params)
     signature += symbol.value();
     if (takes_args) {
       signature += "(";
-      for (int i = 0; i < args.size(); i++) {
+      for (int i = 0; i < (int)args.size(); i++) {
         const auto& arg = args.at(i);
-        if (i == args.size() - 1) {
+        if (i == (int)args.size() - 1) {
           signature += fmt::format("{}: {}", arg.name, arg.type);
         } else {
           signature += fmt::format("{}: {}, ", arg.name, arg.type);

@@ -157,7 +157,7 @@
       (initialize! *game-info* 'game (the-as game-save #f) "jungle-start")
       )
     (((speedrun-category il-misty))
-      ;; spawn at start of misty     
+      ;; spawn at start of misty
       (initialize! *game-info* 'game (the-as game-save #f) "misty-start")
       )
     (((speedrun-category il-firecanyon))
@@ -232,15 +232,15 @@
       (format 0 "start-speedrun: unrecognized category ~S~%" (enum->string speedrun-category (-> *speedrun-info* category)))
       )
     )
-  ;; ensure `force actors` is not enabled
-  (set! (-> *pc-settings* force-actors?) #f)
+  ;; ensure actor vis is enabled
+  (set! (-> *pc-settings* ps2-actor-vis?) #t)
   ;; force FPS to `60`
   (set-frame-rate! *pc-settings* 60 #t)
   ;; enable auto saving by default
   (set! (-> *setting-control* default auto-save) #t)
   (none)
   )
-  
+
 (defun setup-speedrun-post-blackout ()
   (when (and (-> *speedrun-info* needs-post-blackout-setup?) (>= (-> *display* base-frame-counter) (-> *game-info* blackout-time)))
     (set! (-> *speedrun-info* needs-post-blackout-setup?) #f)

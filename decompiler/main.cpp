@@ -10,6 +10,7 @@
 #include "common/util/diff.h"
 #include "common/util/os.h"
 #include "common/util/set_util.h"
+#include "common/util/term_util.h"
 #include "common/util/unicode_util.h"
 #include "common/versions/versions.h"
 
@@ -30,22 +31,6 @@ static void mem_log(const std::string& format, Args&&... args) {
 
 int main(int argc, char** argv) {
   ArgumentGuard u8_guard(argc, argv);
-
-  if (!file_util::setup_project_path(std::nullopt)) {
-    lg::error("Unable to setup project path");
-    return 1;
-  }
-
-  try {
-    lg::set_file(file_util::get_file_path({"log", "decompiler.log"}));
-    lg::set_file_level(lg::level::info);
-    lg::set_stdout_level(lg::level::info);
-    lg::set_flush_level(lg::level::info);
-    lg::initialize();
-  } catch (const std::exception& e) {
-    lg::error("Failed to setup logging: {}", e.what());
-    return 1;
-  }
 
   fs::path config_path;
   fs::path in_folder;
@@ -73,10 +58,29 @@ int main(int argc, char** argv) {
       ->required();
   app.add_option("--config-override", config_override,
                  "JSON provided will be merged with the specified config, use to override options");
+  define_common_cli_arguments(app);
   app.validate_positionals();
   CLI11_PARSE(app, argc, argv);
 
-  // Validate arguments
+  if (!file_util::setup_project_path(std::nullopt)) {
+    lg::error("Unable to setup project path");
+    return 1;
+  }
+
+  try {
+    lg::set_file("decompiler");
+    lg::set_file_level(lg::level::info);
+    lg::set_stdout_level(lg::level::info);
+    lg::set_flush_level(lg::level::info);
+    lg::initialize();
+    if (_cli_flag_disable_ansi) {
+      lg::disable_ansi_colors();
+    }
+  } catch (const std::exception& e) {
+    lg::error("Failed to setup logging: {}", e.what());
+    return 1;
+  }
+
   using namespace decompiler;
 
   Config config;
@@ -128,7 +132,7 @@ int main(int argc, char** argv) {
 
   mem_log("After init: {} MB\n", get_peak_rss() / (1024 * 1024));
 
-  std::vector<fs::path> dgos, objs, strs;
+  std::vector<fs::path> dgos, objs, strs, tex_strs;
   for (const auto& dgo_name : config.dgo_names) {
     dgos.push_back(in_folder / dgo_name);
   }
@@ -141,11 +145,15 @@ int main(int argc, char** argv) {
     strs.push_back(in_folder / str_name);
   }
 
+  for (const auto& str_name : config.str_texture_file_names) {
+    tex_strs.push_back(in_folder / str_name);
+  }
+
   mem_log("After config read: {} MB", get_peak_rss() / (1024 * 1024));
 
   // build file database
   lg::info("Setting up object file DB...");
-  ObjectFileDB db(dgos, fs::path(config.obj_file_name_map_file), objs, strs, config);
+  ObjectFileDB db(dgos, fs::path(config.obj_file_name_map_file), objs, strs, tex_strs, config);
 
   // Explicitly fail if a file in the 'allowed_objects' list wasn't found in the DB
   // as this is another silent error that can be confusing
@@ -197,19 +205,31 @@ int main(int argc, char** argv) {
 
   if (config.process_art_groups) {
     db.extract_art_info();
-    // dumb art info to json if requested
+    // dump art info to json if requested
     if (config.dump_art_group_info) {
-      auto file_name = out_folder / "dump" / "art-group-info.min.json";
-      nlohmann::json json = db.dts.art_group_info;
-      file_util::create_dir_if_needed_for_file(file_name);
-      file_util::write_text_file(file_name, json.dump(-1));
-      lg::info("[DUMP] Dumped art group info to {}", file_name.string());
+      auto ag_file_name = out_folder / "dump" / "art-group-info.min.json";
+      nlohmann::json ag_json = db.dts.art_group_info;
+      file_util::create_dir_if_needed_for_file(ag_file_name);
+      file_util::write_text_file(ag_file_name, ag_json.dump(-1));
+      lg::info("[DUMP] Dumped art group info to {}", ag_file_name.string());
     }
-  } else if (!config.art_group_info_dump.empty()) {
+    if (config.dump_joint_geo_info) {
+      auto jg_file_name = out_folder / "dump" / "joint-node-info.min.json";
+      nlohmann::json jg_json = db.dts.jg_info;
+      file_util::create_dir_if_needed_for_file(jg_file_name);
+      file_util::write_text_file(jg_file_name, jg_json.dump(-1));
+      lg::info("[DUMP] Dumped joint node info to {}", jg_file_name.string());
+    }
+  } else if (!config.art_group_info_dump.empty() || !config.jg_info_dump.empty()) {
     // process art groups (used in decompilation)
     // - if the config has a path to the art info dump, just use that
     // - otherwise (or if we want to dump it fresh) extract it
-    db.dts.art_group_info = config.art_group_info_dump;
+    if (!config.art_group_info_dump.empty()) {
+      db.dts.art_group_info = config.art_group_info_dump;
+    }
+    if (!config.jg_info_dump.empty()) {
+      db.dts.jg_info = config.jg_info_dump;
+    }
   } else {
     lg::error("`process_art_groups` was false and no art-group-info dump was provided!");
     return 1;
@@ -268,7 +288,7 @@ int main(int argc, char** argv) {
   if (config.process_tpages || config.levels_extract) {
     auto textures_out = out_folder / "textures";
     file_util::create_dir_if_needed(textures_out);
-    auto result = db.process_tpages(tex_db, textures_out);
+    auto result = db.process_tpages(tex_db, textures_out, config);
     if (!result.empty() && config.process_tpages) {
       file_util::write_text_file(textures_out / "tpage-dir.txt", result);
       file_util::write_text_file(textures_out / "tex-remap.txt",
@@ -277,6 +297,13 @@ int main(int argc, char** argv) {
   }
 
   mem_log("After textures: {} MB", get_peak_rss() / (1024 * 1024));
+
+  // Merge textures before replacing them, in other words, replacements take priority
+  auto texture_merge_path = file_util::get_jak_project_dir() / "game" / "assets" /
+                            game_version_names[config.game_version] / "texture_merges";
+  if (fs::exists(texture_merge_path)) {
+    tex_db.merge_textures(texture_merge_path);
+  }
 
   auto replacements_path = file_util::get_jak_project_dir() / "texture_replacements";
   if (fs::exists(replacements_path)) {
@@ -294,8 +321,8 @@ int main(int argc, char** argv) {
     auto level_out_path =
         file_util::get_jak_project_dir() / "out" / game_version_names[config.game_version] / "fr3";
     file_util::create_dir_if_needed(level_out_path);
-    extract_all_levels(db, tex_db, config.levels_to_extract, "GAME.CGO", config.hacks,
-                       config.rip_levels, config.extract_collision, level_out_path);
+    extract_all_levels(db, tex_db, config.levels_to_extract, "GAME.CGO", config, config.rip_levels,
+                       config.extract_collision, level_out_path);
   }
 
   mem_log("After extraction: {} MB", get_peak_rss() / (1024 * 1024));
@@ -304,7 +331,8 @@ int main(int argc, char** argv) {
     auto streaming_audio_in = in_folder / "VAG";
     auto streaming_audio_out = out_folder / "assets" / "streaming_audio";
     file_util::create_dir_if_needed(streaming_audio_out);
-    process_streamed_audio(streaming_audio_out, in_folder, config.streamed_audio_file_names);
+    process_streamed_audio(config, streaming_audio_out, in_folder,
+                           config.streamed_audio_file_names);
   }
 
   lg::info("Decompiler has finished successfully in {:.2f} seconds.", decomp_timer.getSeconds());
