@@ -8,8 +8,6 @@
    (dir vector :inline)
    (notice-dist meters)
    (stop-chase-dist meters)
-   (touch-time time-frame)
-   (anim-speed float)
    (traj-time float)
    (grace-period time-frame)
    )
@@ -29,7 +27,7 @@
     orange-demon-dormant
     orange-demon-idle
     orange-demon-chase
-    ;; orange-demon-victory
+    orange-demon-victory
     )
   )
 
