@@ -12,7 +12,6 @@ on:
           - patch
           - minor
           - major
-  push:
 
 permissions:
   contents: write
