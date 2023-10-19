@@ -28,5 +28,6 @@ jobs:
       metadataAuthors: "hat-kid"
       metadataTags: "challenge,custom-enemy,gameplay-mod"
       metadataWebsiteUrl: "https://gist.github.com/Hat-Kid/ede85d11ecf98f89f1e857160cdf82c7"
+      skipMacOS: true
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
