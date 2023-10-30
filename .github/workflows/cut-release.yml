@@ -18,6 +18,7 @@ permissions:
 
 jobs:
   cut_release:
+    permissions: write-all
     name: "Cut Release"
     uses: open-goal/mod-bundling-tools/.github/workflows/mod-bundler.yml@v1
     with:
