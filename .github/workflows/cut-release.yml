@@ -1,0 +1,33 @@
+name: 🏭 Cut Mod Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Semver Bump Type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  cut_release:
+    name: "Cut Release"
+    uses: open-goal/mod-bundling-tools/.github/workflows/mod-bundler.yml@v1
+    with:
+      semverBump: ${{ inputs.bump }}
+      metadataName: "Orange Demon Challenge"
+      metadataDescription: "Play through the entire game while being chased by Daxter!"
+      metadataSupportedGames: "jak1"
+      metadataAuthors: "hat-kid"
+      metadataTags: "challenge,custom-enemy,gameplay-mod"
+      metadataWebsiteUrl: "https://gist.github.com/Hat-Kid/ede85d11ecf98f89f1e857160cdf82c7"
+      skipMacOS: true
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
