@@ -327,8 +327,9 @@
   (if ORANGE_DEMON_DEBUG
     (aif (-> self skel) (debug-print-channels it (the symbol *stdcon*)))
     )
-  (if (= (-> *target* next-state name) 'target-continue)
+  (when (= (-> *target* next-state name) 'target-continue)
     (set-time! (-> self grace-period))
+    (set-time! (-> self state-time))
     )
   (if (time-elapsed? (-> self grace-period) (seconds 2))
     (set! (-> self grace-period) (seconds 0))
