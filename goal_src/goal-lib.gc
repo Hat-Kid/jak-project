@@ -17,6 +17,14 @@
       )
   )
 
+(defmacro mda (file &rest path)
+  "Make Debug Asm Only: make + print disassembly (asm-only mode) for a file"
+  (if (null? path)
+      `(asm-file ,file :color :write :disassemble :disasm-code-only)
+      `(asm-file ,file :color :write :disassemble ,(first path) :disasm-code-only)
+      )
+  )
+
 (defmacro ml (file)
   "Make Load: make and load the file through the listener"
   `(asm-file ,file :color :load :write)
@@ -282,6 +290,22 @@
        ;; we don't typecheck this.
        (define :no-typecheck #t ,name nothing)
        )
+  )
+
+(defmacro defun-debug-recursive (name return-type bindings &rest body)
+  `(begin
+    (define-extern ,name
+        (function ,@(apply (lambda (x)
+                             (if (pair? x)
+                                 (second x)
+                                 'object)
+                             )
+                           bindings)
+                  ,return-type))
+    (if *debug-segment*
+        (defun-debug ,name ,bindings ,@body)
+        (define :no-typecheck #t ,name nothing))
+    )
   )
 
 (defmacro define-once (name value)
@@ -691,7 +715,7 @@
   )
 
 (defmacro /-0-guard (a b)
-  "same as divide but returns -1 when divisor is zero (EE-like)."
+  "same as divide but returns -1 when divisor is zero (EE-like, DIVU)."
   `(let ((divisor ,b))
       (if (zero? divisor)
           -1
@@ -699,12 +723,44 @@
       )
   )
 
+(defmacro /-signed-0-guard (a b)
+  "same as divide but handles overflow and divide by zero like the EE's DIV instruction."
+  `(let ((divisor ,b)
+         (dividend ,a))
+      (cond
+        ((and (= dividend -2147483648) (= divisor -1))
+          ;; overflow case
+          -2147483648)
+        ((zero? divisor)
+          (if (< dividend 0) 1 -1))
+        (else
+          (/ dividend divisor))
+        )
+      )
+  )
+
 (defmacro mod-0-guard (a b)
-  "same as modulo but returns the dividend when divisor is zero (EE-like)."
+  "same as modulo but returns the dividend when divisor is zero (EE-like, DIVU)."
   `(let ((divisor ,b))
       (if (zero? divisor)
           ,a
           (mod ,a divisor))
+      )
+  )
+
+(defmacro mod-signed-0-guard (a b)
+  "same as modulo but handles overflow and divide by zero like the EE's DIV instruction."
+  `(let ((divisor ,b)
+         (dividend ,a))
+      (cond
+        ((and (= dividend -2147483648) (= divisor -1))
+          ;; overflow case
+          0)
+        ((zero? divisor)
+          dividend)
+        (else
+          (mod dividend divisor))
+        )
       )
   )
 
