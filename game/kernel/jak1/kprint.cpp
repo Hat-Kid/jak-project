@@ -336,7 +336,7 @@ s32 format_impl_jak1(uint64_t* args) {
           } else {
             auto sym = find_symbol_from_c(argument_data[0].data);
             if (sym.offset) {
-              Ptr<Type> type = *sym.cast<Ptr<Type>>();
+              Ptr<jak1::Type> type = *sym.cast<Ptr<jak1::Type>>();
               if (type.offset) {
                 call_method_of_type(in, type, GOAL_PRINT_METHOD);
               }
@@ -357,7 +357,7 @@ s32 format_impl_jak1(uint64_t* args) {
           } else {
             auto sym = find_symbol_from_c(argument_data[0].data);
             if (sym.offset) {
-              Ptr<Type> type = *sym.cast<Ptr<Type>>();
+              Ptr<jak1::Type> type = *sym.cast<Ptr<jak1::Type>>();
               if (type.offset) {
                 call_method_of_type(in, type, GOAL_INSPECT_METHOD);
               }
@@ -517,15 +517,15 @@ s32 format_impl_jak1(uint64_t* args) {
     return 0;
   } else {
     if ((original_dest & OFFSET_MASK) == BASIC_OFFSET) {
-      Ptr<Type> type = *Ptr<Ptr<Type>>(original_dest - 4);
-      if (type == *Ptr<Ptr<Type>>(s7.offset + FIX_SYM_STRING_TYPE)) {
+      Ptr<jak1::Type> type = *Ptr<Ptr<jak1::Type>>(original_dest - 4);
+      if (type == *Ptr<Ptr<jak1::Type>>(s7.offset + FIX_SYM_STRING_TYPE)) {
         u32 len = *Ptr<u32>(original_dest);
         char* str = Ptr<char>(original_dest + 4).c();
         kstrncat(str, PrintPendingLocal3, len);
         PrintPending = make_ptr(PrintPendingLocal2).cast<u8>();
         *PrintPendingLocal3 = 0;
         return 0;
-      } else if (type == *Ptr<Ptr<Type>>(s7.offset + FIX_SYM_FILE_STREAM_TYPE)) {
+      } else if (type == *Ptr<Ptr<jak1::Type>>(s7.offset + FIX_SYM_FILE_STREAM_TYPE)) {
         size_t len = strlen(PrintPendingLocal3);
         // sceWrite
         ee::sceWrite(*Ptr<s32>(original_dest + 12), PrintPendingLocal3, len);

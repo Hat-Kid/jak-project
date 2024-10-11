@@ -48,6 +48,7 @@ class OpenGlDebugGui {
   bool should_draw_render_debug() const { return master_enable && m_draw_debug; }
   bool should_draw_profiler() const { return master_enable && m_draw_profiler; }
   bool should_draw_subtitle_editor() const { return master_enable && m_subtitle_editor; }
+  bool should_draw_debugger_window() const { return master_enable && m_debugger; }
   bool should_draw_filters_menu() const { return master_enable && m_filters_menu; }
   bool should_draw_loader_menu() const { return master_enable && m_draw_loader; }
 
@@ -78,6 +79,7 @@ class OpenGlDebugGui {
   bool m_draw_debug = false;
   bool m_draw_loader = false;
   bool m_subtitle_editor = false;
+  bool m_debugger = false;
   bool m_filters_menu = false;
   bool m_want_screenshot = false;
   float target_fps_input = 60.f;

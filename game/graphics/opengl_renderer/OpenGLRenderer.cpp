@@ -1080,6 +1080,14 @@ void OpenGLRenderer::render(DmaFollower dma, const RenderOptions& settings) {
     m_subtitle_editor->draw_window();
   }
 
+  if (settings.draw_debugger_window) {
+    g_current_renderer = "debugger-window";
+    if (!m_debugger) {
+      m_debugger = new debugger_thread::DebuggerWindow();
+    }
+    m_debugger->draw_window();
+  }
+
   if (settings.draw_filters_window) {
     g_current_renderer = "filters-window";
     m_filters_menu.draw_window();

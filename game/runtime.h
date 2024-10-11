@@ -13,10 +13,12 @@
 #include "game/common/game_common_types.h"
 #include "game/kernel/common/kboot.h"
 #include "system/background_worker.h"
+#include "system/debugger_thread.h"
 
 extern u8* g_ee_main_mem;
 extern GameVersion g_game_version;
 extern BackgroundWorker g_background_worker;
+extern debugger_thread::DebuggerThread g_debugger_thread;
 extern int g_server_port;
 
 RuntimeExitStatus exec_runtime(GameLaunchOptions game_options, int argc, const char** argv);

@@ -115,6 +115,13 @@ void KernelCheckAndDispatch() {
       ProcessListenerMessage(new_message);
     }
 
+    if (!g_debugger_thread.get_compiler().get()) {
+      lg::info("[DebuggerThread] compiler init");
+      g_debugger_thread.init_compiler(GameVersion::Jak1);
+      g_debugger_thread.set_packet(
+          new debugger_thread::DebuggerPacket("", debugger_thread::DebuggerSignal::CONNECT));
+    }
+
     // remember the old listener function
     auto old_listener = ListenerFunction->value;
     // dispatch the kernel

@@ -29,6 +29,7 @@
 #include "common/log/log.h"
 #include "common/util/FileUtil.h"
 #include "common/versions/versions.h"
+#include <common/util/string_util.h>
 
 #include "game/external/discord.h"
 #include "game/graphics/gfx.h"
@@ -87,11 +88,13 @@
 #include "sce/libcdvd_ee.h"
 #include "sce/sif_ee.h"
 #include "system/SystemThread.h"
+#include "system/debugger_thread.h"
 
 u8* g_ee_main_mem = nullptr;
 std::thread::id g_main_thread_id = std::thread::id();
 GameVersion g_game_version = GameVersion::Jak1;
 BackgroundWorker g_background_worker;
+debugger_thread::DebuggerThread g_debugger_thread;
 int g_server_port = DECI2_PORT;
 
 namespace {
@@ -258,6 +261,17 @@ void ee_worker_runner(SystemThreadInterface& iface) {
   }
 }
 
+void ee_debugger_runner(SystemThreadInterface& iface) {
+  iface.initialization_complete();
+  while (!iface.get_want_exit()) {
+    if (g_debugger_thread.get_packet()) {
+      g_debugger_thread.handle_signal();
+      g_debugger_thread.delete_packet();
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+}
+
 /*!
  * SystemThread function for running the IOP (separate I/O Processor)
  */
@@ -418,6 +432,7 @@ RuntimeExitStatus exec_runtime(GameLaunchOptions game_options, int argc, const c
   // a general worker thread to perform background operations from the EE thread (to not block the
   // game)
   auto& ee_worker_thread = tm.create_thread("EE-Worker");
+  auto& ee_debugger = tm.create_thread("EE-Debugger");
   prof().end_event();
 
   // step 3: start the EE!
@@ -432,6 +447,10 @@ RuntimeExitStatus exec_runtime(GameLaunchOptions game_options, int argc, const c
   {
     auto p = scoped_prof("startup::exec_runtime::ee-worker-start");
     ee_worker_thread.start(ee_worker_runner);
+  }
+  {
+    auto p = scoped_prof("startup::exec_runtime::ee-debugger-start");
+    ee_debugger.start(ee_debugger_runner);
   }
   {
     auto p = scoped_prof("startup::exec_runtime::ee-start");
