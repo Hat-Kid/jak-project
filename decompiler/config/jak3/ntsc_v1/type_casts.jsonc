@@ -2229,7 +2229,6 @@
     [789, "v1", "float"],
     [792, "v1", "float"],
     [794, "v0", "float"],
-
     // [784, "v1", "vector"],
     [589, "v1", "float"],
     [593, "v1", "float"],
@@ -11340,5 +11339,14 @@
     [[81, 99], "a0", "(inline-array vector4w)"],
     [[165, 190], "a0", "(inline-array vector4w)"]
   ],
-  "(event idle progress)": [[[10, 80], "v1", "mc-status-code"]]
+  "(event idle progress)": [[[10, 80], "v1", "mc-status-code"]],
+  "visvol-edit": [
+    [[22, 26], "v1", "handle"],
+    [[17, 21], "v1", "handle"]
+  ],
+  "(method 10 visvol-edit-info)": [
+    [228, "v0", "(pointer float)"],
+    [458, "v0", "(pointer float)"],
+    [509, "v0", "(pointer float)"]
+  ]
 }

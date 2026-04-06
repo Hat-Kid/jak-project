@@ -41122,26 +41122,33 @@
 ;; visvol-edit                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#|
+;; +++visvol-edit:visvol-edit-func
+(defenum visvol-edit-func
+  :type uint64
+  (visvol-positive 0)
+  (visvol-negative 1)
+  (adjust-sphere 2)
+  (adjust-vis-distance 3)
+  )
+;; ---visvol-edit:visvol-edit-func
+
 (deftype visvol-edit-info (structure)
-  ((editing      basic   :offset-assert 0)
-   (current-func uint64  :offset-assert 8)
-   (analog-func  uint64  :offset-assert 16)
+  ((editing      symbol  :offset-assert 0)
+   (current-func visvol-edit-func  :offset-assert 8)
+   (analog-func  visvol-edit-func  :offset-assert 16)
    )
   :method-count-assert 12
   :size-assert         #x18
   :flag-assert         #xc00000018
   (:methods
-    (visvol-edit-info-method-9 () none) ;; 9
-    (visvol-edit-info-method-10 () none) ;; 10
-    (visvol-edit-info-method-11 () none) ;; 11
+    (handle-pad-input (_type_) object) ;; 9
+    (draw-menu (_type_ process-drawable) object) ;; 10
+    (set-origin-joint-idx! (_type_ process-drawable) none) ;; 11
     )
   )
-|#
 
-#|
 (deftype visvol-editor (process)
-  ((proc uint64  :offset-assert 128)
+  ((proc handle  :offset-assert 128)
    )
   :method-count-assert 15
   :size-assert         #x88
@@ -41150,12 +41157,11 @@
     idle ;; 14
     )
   )
-|#
 
-;; (define-extern *visvol-edit-info* object)
-;; (define-extern visvol-editor-init-by-other function)
-;; (define-extern stop-visvol-edit function)
-;; (define-extern visvol-edit function)
+(define-extern *visvol-edit-info* visvol-edit-info)
+(define-extern visvol-editor-init-by-other (function handle object :behavior visvol-editor))
+(define-extern stop-visvol-edit (function object))
+(define-extern visvol-edit (function string object))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; collision-editor               ;;
