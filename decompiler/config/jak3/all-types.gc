@@ -41218,9 +41218,9 @@
   :size-assert         #x1c
   :flag-assert         #xc0000001c
   (:methods
-    (collision-edit-info-method-9 (_type_) none) ;; 9
+    (handle-pad-input (_type_) none) ;; 9
     (draw-menu (_type_ process-drawable) none) ;; 10
-    (collision-edit-info-method-11 (_type_ process-drawable) none) ;; 11
+    (set-current-prim! (_type_ process-drawable) none) ;; 11
     )
   )
 
@@ -41229,7 +41229,7 @@
 (define-extern *collision-editor-mesh-names* (array string))
 (define-extern *collision-editor-art-group-name* string)
 (define-extern collision-editor-add-mesh-to-ccache (function collide-shape-prim-group collide-cache none))
-(define-extern print-default-collision (function process-drawable none))
+(define-extern print-default-collision (function none))
 (define-extern print-actual-collision (function process-drawable none))
 (define-extern collision-edit-get-max-prim (function process-drawable int))
 (define-extern collision-edit-get-prim (function process-drawable int collide-shape-prim))
