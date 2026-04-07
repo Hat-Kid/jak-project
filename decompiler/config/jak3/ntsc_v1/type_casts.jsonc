@@ -11348,5 +11348,111 @@
     [228, "v0", "(pointer float)"],
     [458, "v0", "(pointer float)"],
     [509, "v0", "(pointer float)"]
+  ],
+  "(event idle editable-player)": [
+    [307, "a1", "vector"],
+    [[473, 492], "s4", "editable-light"],
+    [[533, 561], "s4", "editable-entity"],
+    [[607, 618], "v1", "editable-light"],
+    [[507, 513], "v1", "float"],
+    [[303, 313], "v1", "editable-entity"],
+    [[662, 680], "s3", "editable-light"],
+    [665, "v1", "(pointer float)"],
+    [666, "a0", "editable-light"],
+    [[431, 436], "v1", "float"],
+    [[580, 587], "v1", "float"],
+    [635, "v1", "float"]
+  ],
+  "keybd-set-time-of-day!": [[[15, 19], "v1", "float"]],
+  "set-light-value": [
+    [[26, 49], "s2", "editable-light"],
+    [29, "a0", "(pointer float)"]
+  ],
+  "get-light-value": [
+    [[26, 39], "s3", "editable-light"],
+    [28, "v1", "(pointer float)"]
+  ],
+  "dm-editable-light-float-func": [
+    [[32, 108], "s2", "editable-light"],
+    [36, "a0", "(pointer float)"],
+    [88, "v1", "(pointer float)"],
+    [[137, 151], "s3", "editable-light"],
+    [140, "v1", "(pointer float)"],
+    [81, "a2", "uint"],
+    [88, "a1", "int"]
+  ],
+  "(method 23 editable-player)": [
+    [58, "a1", "int"],
+    [58, "a0", "int"],
+    [67, "a0", "int"],
+    [67, "a1", "int"]
+  ],
+  "execute-select": [
+    [[552, 556], "a0", "editable"],
+    [644, "v1", "editable"],
+    [[595, 599], "a0", "editable"],
+    [742, "v1", "editable"],
+    [[693, 697], "a0", "editable"]
+  ],
+  "update-manipulator-position": [["_stack_", 48, "euler-angles"]],
+  "(method 9 editable)": [[35, "a0", "editable-light"]],
+  "common-owner": [
+    [18, "v1", "pair"],
+    [12, "a2", "pair"],
+    [17, "v1", "pair"],
+    [11, "a2", "pair"]
+  ],
+  "(method 27 editable)": [
+    [[12, 17], "a0", "editable"],
+    [19, "s4", "pair"],
+    [18, "s4", "pair"]
+  ],
+  "(method 31 editable)": [
+    [[4, 8], "a0", "editable"],
+    [10, "s5", "pair"],
+    [9, "s5", "pair"]
+  ],
+  "(method 30 editable)": [
+    [[4, 8], "a0", "editable"],
+    [10, "s5", "pair"],
+    [9, "s5", "pair"]
+  ],
+  "(method 36 editable-entity)": [[[23, 55], "s5", "process-drawable"]],
+  "(method 13 editable-plane)": [
+    [[63, 66], "s3", "(inline-array vector)"],
+    [[72, 75], "s3", "(inline-array vector)"],
+    [89, "s3", "(inline-array vector)"]
+  ],
+  "(method 31 editable-face)": [
+    ["_stack_", 288, "(array editable-point)"],
+    ["_stack_", 208, "(inline-array vector)"]
+  ],
+  "(method 13 editable-face)": [
+    [[57, 60], "s3", "(inline-array vector)"],
+    [[66, 69], "s3", "(inline-array vector)"],
+    [83, "s3", "(inline-array vector)"]
+  ],
+  "(method 14 editable-face)": [["_stack_", 576, "vector"]],
+  "(method 13 editable-array)": [
+    ["_stack_", 28, "sql-result"],
+    ["_stack_", 84, "string"],
+    ["_stack_", 176, "vector"],
+    [466, "v1", "sql-result"],
+    [647, "v1", "sql-result"]
+  ],
+  "dm-editable-boolean-toggle-pick-func": [[5, "v1", "(pointer float)"]],
+  "(method 25 editable-light)": [
+    [78, "a2", "vector"],
+    [63, "t0", "uint"],
+    [70, "a3", "int"]
+  ],
+  "update-light-sphere-from-editable-light": [
+    [80, "a0", "vector"],
+    [72, "a1", "int"],
+    [65, "a2", "uint"]
+  ],
+  "load-editable-lights": [
+    [345, "a1", "uint"],
+    [352, "a0", "int"]
   ]
 }

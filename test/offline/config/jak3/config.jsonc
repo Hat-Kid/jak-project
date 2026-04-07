@@ -404,5 +404,6 @@
     "(explode krimson-wall-break)": ["code"], // art-joint-anim cast
     "(active desert-chase-ambush-manager)": ["code"],
     "(riding-idle-ship bt-grunt)": ["code"] // int->float attempted on a function
+    ,"(idle editable-player)": ["trans"]
   }
 }

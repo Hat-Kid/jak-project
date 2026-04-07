@@ -136,6 +136,7 @@
 
 (declare-type sql-result basic)
 (define-extern sql-query (function string sql-result))
+(define-extern *collapse-quote* symbol)
 
 (define-extern loading-level kheap)
 (define-extern dma-sync (function pointer int int int))
@@ -19135,7 +19136,7 @@
 (define-extern reset-light-hash
   "Resets the global [[*light-hash*]] back to having `0` lights, indicies, and buckets.
    @returns [[none]]"
-  (function none)) ;;
+  (function light-hash none)) ;;
 (define-extern update-light-hash (function light-hash none)) ;;
 (define-extern lookup-light-sphere-by-name
   "Search through a given [[light-hash]]'s lights to find the one that matches the given name
@@ -39933,6 +39934,7 @@
   :type uint32
   (mm0 0)
   (mm1 1)
+  (mm2 2)
   )
 ;; ---manipulator:manipulator-mode
 
@@ -39967,7 +39969,7 @@
   :flag-assert         #xf000000b0
   (:methods
     (set-mode (_type_ manipulator-mode) none) ;; 9
-    (manipulator-method-10 (_type_) none) ;; 10
+    (manipulator-method-10 (_type_ vector vector) none) ;; 10
     (manipulator-method-11 (_type_) none) ;; 11
     (manipulator-method-12 (_type_ vector) none) ;; 12
     (manipulator-method-13 (_type_ vector vector) none) ;; 13
@@ -40087,6 +40089,7 @@
   )
 ;; ---editable-h:editable-filter
 
+(declare-type editable-array basic)
 (deftype editable-region (basic)
   ((changed   symbol           :offset-assert 4) ;; guessed by decompiler
    (locked    symbol           :offset-assert 8) ;; guessed by decompiler
@@ -40094,9 +40097,9 @@
    (filter    editable-filter  :offset-assert 24) ;; guessed by decompiler
    (tree      symbol           :offset-assert 28) ;; guessed by decompiler
    (level     string           :offset-assert 32) ;; guessed by decompiler
-   (on-enter  string           :offset-assert 36) ;; guessed by decompiler
-   (on-inside string           :offset-assert 40) ;; guessed by decompiler
-   (on-exit   string           :offset-assert 44) ;; guessed by decompiler
+   (on-enter  pair             :offset-assert 36) ;; guessed by decompiler
+   (on-inside pair             :offset-assert 40) ;; guessed by decompiler
+   (on-exit   pair             :offset-assert 44) ;; guessed by decompiler
    )
   :method-count-assert 13
   :size-assert         #x30
@@ -40104,10 +40107,10 @@
   ;; field on-enter uses ~A with a signed load. field on-inside uses ~A with a signed load. field on-exit uses ~A with a signed load.
   (:methods
     (new (symbol type) _type_) ;; 0
-    (editable-region-method-9 () none) ;; 9 ;; (editable-region-method-9 (_type_ editable-array int int) symbol)
-    (editable-region-method-10 () none) ;; 10 ;; (editable-region-method-10 (_type_ int) symbol)
-    (editable-region-method-11 () none) ;; 11 ;; (editable-region-method-11 (_type_ vector int) none)
-    (editable-region-method-12 () none) ;; 12 ;; (editable-region-method-12 (_type_) editable-filter)
+    (save-region! (_type_ editable-array int int) symbol) ;; 9 ;; (editable-region-method-9 (_type_ editable-array int int) symbol)
+    (editable-region-method-10 (_type_ int) symbol) ;; 10 ;; (editable-region-method-10 (_type_ int) symbol)
+    (print-region-info (_type_ vector int) none) ;; 11 ;; (editable-region-method-11 (_type_ vector int) none)
+    (editable-region-method-12 (_type_) editable-filter) ;; 12 ;; (editable-region-method-12 (_type_) editable-filter)
     )
   )
 
@@ -40142,33 +40145,33 @@
   :size-assert         #x1c
   :flag-assert         #x240000001c
   (:methods
-    (editable-method-9 () none) ;; 9 ;; (get-color (_type_ int) rgba)
-    (editable-method-10 () none) ;; 10 ;; (editable-method-10 (_type_) none)
-    (editable-method-11 () none) ;; 11 ;; (editable-method-11 (_type_ vector) symbol)
-    (editable-method-12 () none) ;; 12 ;; (select-editable! (_type_ symbol) none)
-    (editable-method-13 () none) ;; 13 ;; (edit-get-distance (_type_ vector) float)
-    (editable-method-14 () none) ;; 14 ;; (edit-get-trans (_type_) vector)
-    (editable-method-15 () none) ;; 15 ;; (editable-method-15 (_type_ vector int) none)
-    (editable-method-16 () none) ;; 16 ;; (edit-coord! (_type_ vector editable-flag) none)
-    (editable-method-17 () none) ;; 17 ;; (editable-method-17 (_type_ vector) none)
-    (editable-method-18 () none) ;; 18 ;; (editable-method-18 (_type_ vector matrix) none)
-    (editable-method-19 () none) ;; 19 ;; (editable-method-19 (_type_ vector) none)
-    (editable-method-20 () none) ;; 20 ;; (editable-method-20 (_type_ vector vector vector vector) none)
-    (editable-method-21 () none) ;; 21 ;; (editable-method-21 (_type_ editable-region) none)
-    (editable-method-22 () none) ;; 22 ;; (editable-method-22 (_type_ editable-array int int) symbol)
-    (editable-method-23 () none) ;; 23 ;; (editable-method-23 (_type_) symbol)
-    (editable-method-24 () none) ;; 24 ;; (editable-method-24 (_type_) none)
-    (editable-method-25 () none) ;; 25 ;; (editable-method-25 (_type_ editable-array) none)
-    (editable-method-26 () none) ;; 26 ;; (editable-method-26 (_type_ editable editable-array) none)
-    (editable-method-27 () none) ;; 27 ;; (editable-method-27 (_type_ editable-array) editable)
-    (editable-method-28 () none) ;; 28 ;; (editable-method-28 (_type_ editable-filter) none)
-    (editable-method-29 () none) ;; 29 ;; (editable-method-29 (_type_ editable-filter) symbol)
-    (editable-method-30 () none) ;; 30
-    (editable-method-31 () none) ;; 31
-    (editable-method-32 () none) ;; 32
-    (editable-method-33 () none) ;; 33
-    (editable-method-34 () none) ;; 34
-    (editable-method-35 () none) ;; 35
+    (get-color (_type_) rgba) ;; 9 ;; (get-color (_type_ int) rgba)
+    (editable-method-10 (_type_) none) ;; 10 ;; (editable-method-10 (_type_) none)
+    (editable-method-11 (_type_ vector) symbol) ;; 11 ;; (editable-method-11 (_type_ vector) symbol)
+    (set-selected! (_type_ symbol) none) ;; 12 ;; (select-editable! (_type_ symbol) none)
+    (editable-method-13 (_type_ vector) float) ;; 13 ;; (edit-get-distance (_type_ vector) float)
+    (editable-method-14 (_type_ vector vector) float) ;; 14 ;; (edit-get-trans (_type_) vector)
+    (editable-method-15 (_type_) vector) ;; 15 ;; (editable-method-15 (_type_ vector int) none)
+    (editable-method-16 (_type_) float) ;; 16 ;; (edit-coord! (_type_ vector editable-flag) none)
+    (editable-method-17 (_type_ vector editable-flag) none) ;; 17 ;; (editable-method-17 (_type_ vector) none)
+    (editable-method-18 (_type_ vector int) none) ;; 18 ;; (editable-method-18 (_type_ vector matrix) none)
+    (editable-method-19 (_type_ vector) none) ;; 19 ;; (editable-method-19 (_type_ vector) none)
+    (editable-method-20 (_type_ vector matrix) none) ;; 20 ;; (editable-method-20 (_type_ vector vector vector vector) none)
+    (editable-method-21 (_type_ vector) none) ;; 21 ;; (editable-method-21 (_type_ editable-region) none)
+    (editable-method-22 (_type_ vector vector vector vector) none) ;; 22 ;; (editable-method-22 (_type_ editable-array int int) symbol)
+    (change-region! (_type_ editable-region) none) ;; 23 ;; (editable-method-23 (_type_) symbol)
+    (editable-method-24 (_type_ editable-array int int) symbol) ;; 24 ;; (editable-method-24 (_type_) none)
+    (editable-method-25 (_type_) symbol) ;; 25 ;; (editable-method-25 (_type_ editable-array) none)
+    (editable-method-26 (_type_) none) ;; 26 ;; (editable-method-26 (_type_ editable editable-array) none)
+    (delete! (_type_ editable) none) ;; 27 ;; (editable-method-27 (_type_ editable-array) editable)
+    (editable-method-28 (_type_ editable editable) none) ;; 28 ;; (editable-method-28 (_type_ editable-filter) none)
+    (copy-into-editable-array! (_type_ editable-array) editable) ;; 29 ;; (editable-method-29 (_type_ editable-filter) symbol)
+    (editable-method-30 (_type_ editable-flag) none) ;; 30
+    (editable-method-31 (_type_ editable-flag) none) ;; 31
+    (get-null-vec (_type_) vector) ;; 32
+    (get-null-vec2 (_type_ vector) vector) ;; 33
+    (get-level-offset (_type_ editable-array) vector) ;; 34
+    (editable-method-35 (_type_ vector) none) ;; 35
     )
   )
 
@@ -40201,17 +40204,17 @@
   :flag-assert         #x140000007c
   (:methods
     (new (symbol type int) _type_) ;; 0
-    (editable-array-method-9 () none) ;; 9 ;; (editable-array-method-9 (_type_ editable-command mouse-info) symbol)
-    (editable-array-method-10 () none) ;; 10 ;; (editable-array-method-10 (_type_ vector int) editable)
-    (editable-array-method-11 () none) ;; 11 ;; (editable-array-method-11 (_type_) int)
-    (editable-array-method-12 () none) ;; 12 ;; (editable-array-method-12 (_type_ editable-array) none)
-    (editable-array-method-13 () none) ;; 13 ;; (editable-array-method-13 (_type_ editable-command editable-command string) none)
-    (editable-array-method-14 () none) ;; 14 ;; (editable-array-method-14 (_type_ (function editable editable-region symbol) editable-region) (array editable))
-    (editable-array-method-15 () none) ;; 15 ;; (editable-array-method-15 (_type_ editable) none)
-    (editable-array-method-16 () none) ;; 16 ;; (editable-array-method-16 (_type_) none)
-    (editable-array-method-17 () none) ;; 17 ;; (editable-array-method-17 (_type_ vector vector) vector)
-    (editable-array-method-18 () none) ;; 18
-    (editable-array-method-19 () none) ;; 19
+    (handle-cmd (_type_ editable-command mouse-info object) symbol) ;; 9 ;; (editable-array-method-9 (_type_ editable-command mouse-info) symbol)
+    (editable-array-method-10 (_type_ vector int) editable) ;; 10 ;; (editable-array-method-10 (_type_ vector int) editable)
+    (editable-array-method-11 (_type_ vector vector int) none) ;; 11 ;; (editable-array-method-11 (_type_) int)
+    (get-length (_type_) int) ;; 12 ;; (editable-array-method-12 (_type_ editable-array) none)
+    (editable-array-method-13 (_type_ symbol) symbol) ;; 13 ;; (editable-array-method-13 (_type_ editable-command editable-command string) none)
+    (editable-array-method-14 (_type_ editable-command editable-command string) none) ;; 14 ;; (editable-array-method-14 (_type_ (function editable editable-region symbol) editable-region) (array editable))
+    (editable-array-method-15 (_type_ (function editable editable-region symbol) editable-region) (array editable)) ;; 15 ;; (editable-array-method-15 (_type_ editable) none)
+    (editable-array-method-16 (_type_ editable) none) ;; 16 ;; (editable-array-method-16 (_type_) none)
+    (editable-array-method-17 (_type_) none) ;; 17 ;; (editable-array-method-17 (_type_ vector vector) vector)
+    (editable-array-method-18 (_type_ vector vector) vector) ;; 18
+    (editable-array-method-19 (_type_ string) symbol) ;; 19
     )
   )
 
@@ -40275,7 +40278,8 @@
   :flag-assert         #x2500000044
   (:methods
     (new (symbol type vector float editable-region) _type_) ;; 0
-    (editable-entity-method-36 () none) ;; 36
+    (editable-entity-method-36 (_type_) none) ;; 36
+    (copy-into-editable-array! (_type_ editable-array) editable-entity :replace)
     )
   )
 
@@ -40290,8 +40294,9 @@
   :flag-assert         #x2600000058
   (:methods
     (new (symbol type editable-region) _type_) ;; 0
-    (editable-face-method-36 () none) ;; 36
-    (editable-face-method-37 () none) ;; 37
+    (editable-face-method-36 (_type_ (inline-array vector)) int) ;; 36
+    (editable-face-method-37 (_type_ vector) vector) ;; 37
+    (copy-into-editable-array! (_type_ editable-array) editable-face :replace)
     )
   )
 
@@ -40305,8 +40310,9 @@
   :flag-assert         #x260000002c
   (:methods
     (new (symbol type editable-region) _type_) ;; 0
-    (editable-plane-method-36 () none) ;; 36
-    (editable-plane-method-37 () none) ;; 37
+    (editable-plane-method-36 (_type_ (inline-array vector)) int) ;; 36
+    (editable-plane-method-37 (_type_ vector) vector) ;; 37
+    (copy-into-editable-array! (_type_ editable-array) editable-plane :replace)
     )
   )
 
@@ -40314,10 +40320,10 @@
 (declare-type editable-array basic)
 (deftype editable-player (process-drawable)
   ((current           editable-array           :offset-assert 200) ;; guessed by decompiler
-   (current-command   uint32                   :offset-assert 204)
-   (select-command    function                 :offset-assert 208) ;; guessed by decompiler
+   (current-command   editable-command         :offset-assert 204)
+   (select-command    (function object)        :offset-assert 208) ;; guessed by decompiler
    (drag-command      uint32                   :offset-assert 212)
-   (extra-command     function                 :offset-assert 216) ;; guessed by decompiler
+   (extra-command     (function object)        :offset-assert 216) ;; guessed by decompiler
    (left-handed       basic                    :offset-assert 220)
    (light-names       basic                    :offset-assert 224)
    (external-cam-mode symbol                   :offset-assert 228) ;; guessed by decompiler
@@ -40338,11 +40344,13 @@
   :method-count-assert 24
   :size-assert         #x234
   :flag-assert         #x1801c00234
+  (:state-methods
+    idle
+    )
   (:methods
-    (editable-player-method-20 () none) ;; 20 ;; (idle () _type_ :state)
-    (editable-player-method-21 () none) ;; 21 ;; (editable-player-method-21 (_type_) none)
-    (editable-player-method-22 () none) ;; 22
-    (editable-player-method-23 () none) ;; 23
+    (editable-player-method-21 (_type_) none) ;; 21 ;; (editable-player-method-21 (_type_) none)
+    (editable-player-method-22 (_type_) none) ;; 22
+    (editable-player-method-23 (_type_) symbol) ;; 23
     )
   )
 
@@ -40371,43 +40379,43 @@
 ;; editable                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (define-extern common-owner function)
-;; (define-extern update-light-sphere-from-editable-light function) ;; (function editable-light none)
-;; (define-extern load-editable-lights function)
-;; (define-extern *editable-sample-region* object) ;; editable-region
-;; (define-extern *editable-light-region* object) ;; editable-region
-;; (define-extern *editable-entity-region* object) ;; editable-region
+(define-extern common-owner (function editable editable object))
+(define-extern update-light-sphere-from-editable-light (function editable-light object))
+(define-extern load-editable-lights (function editable-array symbol))
+(define-extern *editable-sample-region* editable-region)
+(define-extern *editable-light-region* editable-region)
+(define-extern *editable-entity-region* editable-region)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; editable-player                ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (define-extern cleanup-selection function) ;; (function editable-array none)
-;; (define-extern insert-box function) ;; (function editable-array vector none)
-;; (define-extern insert-wall function)
-;; (define-extern update-manipulator-position function)
-;; (define-extern execute-select function) ;; (function editable-array editable-command mouse-info symbol)
-;; (define-extern execute-mouse-move function) ;; (function editable-array editable-command mouse-info symbol)
-;; (define-extern execute-move function) ;; (function editable-array editable-command mouse-info symbol)
-;; (define-extern get-light-value function)
-;; (define-extern set-light-value function)
-;; (define-extern keybd-set-time-of-day! function)
+(define-extern cleanup-selection (function editable-array object))
+(define-extern insert-box (function editable-array vector vector object))
+(define-extern insert-wall (function editable-array vector vector object))
+(define-extern update-manipulator-position (function editable-array manipulator matrix))
+(define-extern execute-select (function editable-array editable-command mouse-info manipulator symbol))
+(define-extern execute-mouse-move (function editable-array editable-command mouse-info manipulator symbol))
+(define-extern execute-move (function editable-array editable-command mouse-info manipulator symbol))
+(define-extern get-light-value (function uint float))
+(define-extern set-light-value (function int float object))
+(define-extern keybd-set-time-of-day! (function int time-of-day-palette-id object))
 (define-extern editable-player-init (function symbol none :behavior editable-player))
-;; (define-extern set-editable-name function)
-;; (define-extern select-editable-by-name function)
+(define-extern set-editable-name (function string object))
+(define-extern select-editable-by-name (function string object))
 (define-extern *editable-menu-context* debug-menu-context)
-;; (define-extern editable-menu-command function) ;; (function int none)
-;; (define-extern editable-menu-command-no-close function) ;; (function int none)
-;; (define-extern dm-region-tree-pick-func function) ;; (function symbol debug-menu-msg symbol)
-;; (define-extern dm-editable-flag-pick-func function) ;; (function editable-flag debug-menu-msg symbol)
-;; (define-extern dm-editable-filter0-pick-func function) ;; (function editable-filter debug-menu-msg symbol)
-;; (define-extern dm-editable-filter1-pick-func function) ;; (function editable-filter debug-menu-msg symbol)
-;; (define-extern dm-editable-light-float-func function) ;; (function int debug-menu-msg float float float)
-;; (define-extern dm-cam-externalize2 function) ;; (function symbol debug-menu-msg symbol)
-;; (define-extern dm-editable-boolean-toggle-pick-func function) ;; (function int debug-menu-msg symbol)
-;; (define-extern editable-menu-context-make-menus function) ;; (function debug-menu-context debug-menu-context)
-;; (define-extern insert-sample-camera function) ;; (function symbol none)
-;; (define-extern *debug-hook* object) ;; pair
+(define-extern editable-menu-command (function int object))
+(define-extern editable-menu-command-no-close (function int object))
+(define-extern dm-region-tree-pick-func (function symbol debug-menu-msg symbol))
+(define-extern dm-editable-flag-pick-func (function editable-flag debug-menu-msg symbol))
+(define-extern dm-editable-filter0-pick-func (function editable-filter debug-menu-msg symbol))
+(define-extern dm-editable-filter1-pick-func (function editable-filter debug-menu-msg symbol))
+(define-extern dm-editable-light-float-func (function int debug-menu-msg float float float))
+(define-extern dm-cam-externalize2 (function symbol debug-menu-msg symbol))
+(define-extern dm-editable-boolean-toggle-pick-func (function int debug-menu-msg symbol))
+(define-extern editable-menu-context-make-menus (function debug-menu-context debug-menu-context))
+(define-extern insert-sample-camera (function symbol object))
+(define-extern *debug-hook* pair)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; mysql-nav-graph                ;;

@@ -2519,5 +2519,59 @@
     [32, "vector"],
     [48, "vector"],
     [64, "vector"]
+  ],
+  "(method 9 editable-array)": [
+    [16, "vector"],
+    [96, "vector"]
+  ],
+  "(method 23 editable-player)": [
+    [128, "vector"],
+    [112, "vector"]
+  ],
+  "execute-move": [
+    [16, "vector"],
+    [32, "vector"]
+  ],
+  "execute-mouse-move": [
+    [16, "vector"],
+    [32, "vector"],
+    [48, "vector"],
+    [64, "vector"],
+    [80, "vector"],
+    [112, "vector"]
+  ],
+  "update-manipulator-position": [[16, "vector"]],
+  "insert-wall": [[32, ["array", "int32", 2]]],
+  "insert-box": [[32, ["array", "int32", 8]]],
+  "(method 22 editable)": [
+    [16, "vector"],
+    [32, "vector"]
+  ],
+  "(method 21 editable-entity)": [[80, "vector"]],
+  "(method 13 editable-plane)": [[64, ["inline-array", "vector", 4]]],
+  "(method 14 editable-point)": [
+    [80, ["inline-array", "vector", 4]],
+    [32, "vector"],
+    [48, "vector"]
+  ],
+  "(method 31 editable-face)": [
+    [16, ["inline-array", "vector", 6]],
+    [112, ["inline-array", "vector", 6]],
+    [240, ["array", "editable-point", 6]],
+    [304, "matrix"]
+  ],
+  "(method 14 editable-face)": [
+    [64, ["inline-array", "vector", 4]],
+    [208, ["inline-array", "vector", 6]],
+    [304, ["inline-array", "vector", 6]],
+    [416, "vector"]
+  ],
+  "(method 13 editable-face)": [[64, ["inline-array", "vector", 6]]],
+  "(method 10 editable-face)": [[16, ["inline-array", "vector", 6]]],
+  "(method 37 editable-face)": [[16, ["inline-array", "vector", 6]]],
+  "(method 10 editable-plane)": [[16, ["inline-array", "vector", 4]]],
+  "(method 13 editable-array)": [
+    [96, "vector"],
+    [160, "vector"]
   ]
 }
