@@ -11454,5 +11454,33 @@
   "load-editable-lights": [
     [345, "a1", "uint"],
     [352, "a0", "int"]
+  ],
+  "(method 10 mysql-nav-node)": [[4, "v1", "mysql-nav-edge"]],
+  "(method 19 mysql-nav-graph)": [
+    [42, "a0", "mysql-nav-edge"],
+    [46, "a0", "mysql-nav-edge"],
+    [60, "a0", "mysql-nav-edge"]
+  ],
+  "nav-graph-set-level": [[5, "v1", "nav-graph-editor"]],
+  "set-minimap-edge-flag": [[[5, 12], "v1", "nav-graph-editor"]],
+  "set-vehicle-edit-mode": [[[5, 11], "v1", "nav-graph-editor"]],
+  "translate-nav-graph": [[[14, 34], "v1", "nav-graph-editor"]],
+  "update-width": [[5, "a0", "nav-graph-editor"]],
+  "update-height": [[4, "a1", "nav-graph-editor"]],
+  "smooth-nav-graph": [[5, "a0", "nav-graph-editor"]],
+  "delete-node-nav-mesh": [[[15, 36], "s5", "nav-graph-editor"]],
+  "update-nav-meshes": [[[14, 28], "gp", "nav-graph-editor"]],
+  "(method 47 nav-graph-editor)": [["_stack_", 192, "vector"]],
+  "draw-square-point": [[[70, 73], "v1", "dma-packet"]],
+  "(event idle nav-mesh-editor)": [
+    [[88, 93], "v1", "float"],
+    [167, "v1", "float"]
+  ],
+  "(method 16 nav-mesh-editable)": [
+    [668, "v1", "(inline-array nav-mesh-tri-quad)"]
+  ],
+  "(trans idle nav-mesh-editor)": [
+    [423, "v0", "int"],
+    [476, "v0", "int"]
   ]
 }

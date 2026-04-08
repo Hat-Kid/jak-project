@@ -2481,5 +2481,13 @@
     ["L680", "vector"],
     ["L722", "uint64", true],
     ["L723", "rgba", true]
+  ],
+  "nav-mesh-editor": [
+    ["L560", "uint64", true],
+    ["L504", "(inline-array triangulation-vert)", 256],
+    ["L505", "(inline-array triangulation-vert)", 256],
+    ["L555", "(pointer int32)", 1024],
+    ["L556", "(inline-array vector)", 1024],
+    ["L557", "uint64", true]
   ]
 }
