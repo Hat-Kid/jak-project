@@ -6,7 +6,7 @@
 ;; dgos: GAME
 
 (declare-type nav-graph-editor process)
-(define-extern run-nav-graph-editor (function symbol (pointer process)))
+(define-extern run-nav-graph-editor (function symbol symbol (pointer nav-graph-editor)))
 (define-extern get-nav-graph-editor (function nav-graph-editor))
 (define-extern exit-nav-graph-editor (function none))
 (define-extern *nav-graph-editor* (pointer nav-graph-editor))

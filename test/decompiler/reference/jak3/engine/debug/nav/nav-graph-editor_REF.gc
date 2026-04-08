@@ -2393,27 +2393,31 @@
   )
 
 ;; definition for function run-nav-graph-editor
+;; WARN: Return type mismatch (pointer process) vs (pointer nav-graph-editor).
 (defun run-nav-graph-editor ((arg0 symbol) (arg1 symbol))
-  (when (not *nav-graph-editor*)
-    (let ((s4-0 (process-spawn
-                  nav-graph-editor
-                  arg0
-                  (if arg1
-                      arg1
-                      'unknown
-                      )
-                  :name "nav-graph-editor"
+  (the-as
+    (pointer nav-graph-editor)
+    (when (not *nav-graph-editor*)
+      (let ((s4-0 (process-spawn
+                    nav-graph-editor
+                    arg0
+                    (if arg1
+                        arg1
+                        'unknown
+                        )
+                    :name "nav-graph-editor"
+                    )
                   )
+            )
+        (when arg1
+          (let ((v1-4 *nav-graph-editor*))
+            (if v1-4
+                (nav-graph-editor-method-66 (-> v1-4 0) arg0 (the-as string arg1))
                 )
+            )
           )
-      (when arg1
-        (let ((v1-4 *nav-graph-editor*))
-          (if v1-4
-              (nav-graph-editor-method-66 (-> v1-4 0) arg0 (the-as string arg1))
-              )
-          )
+        s4-0
         )
-      s4-0
       )
     )
   )

@@ -40787,7 +40787,7 @@
 (define-extern *nav-graph-editor* (pointer nav-graph-editor))
 (define-extern get-node-draw-position (function vector mysql-nav-node vector))
 (define-extern nav-graph-editor-init-by-other (function string symbol object :behavior nav-graph-editor))
-(define-extern run-nav-graph-editor (function symbol symbol (pointer process)))
+(define-extern run-nav-graph-editor (function symbol symbol (pointer nav-graph-editor)))
 (define-extern get-nav-graph-editor (function nav-graph-editor))
 (define-extern exit-nav-graph-editor (function none))
 (define-extern nav-graph-set-level (function symbol object))
@@ -40895,6 +40895,7 @@
   :size-assert         #x28
   :flag-assert         #x1300000028
   (:methods
+    (new (symbol type) _type_) ;; 0
     (init-fields! (_type_) none) ;; 9
     (nav-mesh-editable-method-10 (_type_ symbol) none) ;; 10
     (add-vert! (_type_ vector) int) ;; 11

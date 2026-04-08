@@ -192,6 +192,7 @@
    (selected-poly  uint32)
    )
   (:methods
+    (new (symbol type) _type_)
     (init-fields! (_type_) none)
     (nav-mesh-editable-method-10 (_type_ symbol) none)
     (add-vert! (_type_ vector) int)
