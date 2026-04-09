@@ -272,7 +272,7 @@
    (pos    vector  :inline)
    )
   (:methods
-    (new (symbol type) hover-nav-bsp-point)
+    (new (symbol type) _type_)
     )
   )
 
@@ -679,3 +679,7 @@
   (format #t ")~%")
   (none)
   )
+
+
+
+
