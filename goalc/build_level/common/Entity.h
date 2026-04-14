@@ -17,4 +17,5 @@ math::Vector4f vector_from_json(const nlohmann::json& json);
 u64 get_enum_val(const std::string& val, decompiler::DecompilerTypeSystem& dts);
 std::unique_ptr<Res> res_from_json_array(const std::string& name,
                                          const nlohmann::json& json_array,
-                                         decompiler::DecompilerTypeSystem& dts);
+                                         decompiler::DecompilerTypeSystem& dts,
+                                         float keyframe);

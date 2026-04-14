@@ -93,22 +93,38 @@ void add_actors_from_json(const nlohmann::json& json,
     }
     actor.bsphere = vectorm4_from_json(actor_json.at("bsphere"));
 
+    std::unordered_map<std::string, float> keyframes;
+    if (actor_json.find("keyframes") != actor_json.end()) {
+      for (const auto& [key, value] : actor_json.at("keyframes").items()) {
+        ASSERT_MSG(value.is_number_float(),
+                   fmt::format("keyframes: value {} must be a float!", value.get<float>()));
+        keyframes.emplace(key, value);
+      }
+    }
+
+    auto get_custom_keyframe = [keyframes](const std::string& lump) {
+      if (keyframes.contains(lump)) {
+        return keyframes.at(lump);
+      }
+      return DEFAULT_RES_TIME;
+    };
+
     if (actor_json.find("lump") != actor_json.end()) {
-      for (auto [key, value] : actor_json.at("lump").items()) {
+      for (const auto& [key, value] : actor_json.at("lump").items()) {
+        float keyframe = get_custom_keyframe(key);
         if (value.is_string()) {
-          std::string value_string = value.get<std::string>();
-          if (value_string.size() > 0 && value_string[0] == '\'') {
+          auto value_string = value.get<std::string>();
+          if (!value_string.empty() && value_string[0] == '\'') {
             actor.res_lump.add_res(
-                std::make_unique<ResSymbol>(key, value_string.substr(1), -1000000000.0000));
+                std::make_unique<ResSymbol>(key, value_string.substr(1), keyframe));
           } else {
-            actor.res_lump.add_res(
-                std::make_unique<ResString>(key, value_string, -1000000000.0000));
+            actor.res_lump.add_res(std::make_unique<ResString>(key, value_string, keyframe));
           }
           continue;
         }
 
         if (value.is_array()) {
-          actor.res_lump.add_res(res_from_json_array(key, value, dts));
+          actor.res_lump.add_res(res_from_json_array(key, value, dts, keyframe));
         }
       }
     }
