@@ -649,7 +649,7 @@ void GLDisplay::render() {
                                          Gfx::g_global_settings.lbox_h);
 
     // draw splash screen on startup if requested
-    if (SplashScreen && !m_splash_program) {
+    if (SplashScreen && DiskBoot && !m_splash_program) {
       init_splash();
     }
     if (SplashScreen && Gfx::g_splash.ready.load() &&
