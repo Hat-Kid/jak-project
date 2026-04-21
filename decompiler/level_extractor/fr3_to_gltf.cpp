@@ -1,8 +1,10 @@
 #include "fr3_to_gltf.h"
 
+#include <algorithm>
 #include <unordered_map>
 
 #include "common/custom_data/Tfrag3Data.h"
+#include "common/log/log.h"
 #include "common/math/Vector.h"
 #include "common/math/geometry.h"
 
@@ -931,87 +933,282 @@ int make_inv_matrix_bind_poses(const std::vector<level_tools::Joint>& joints,
   return accessor_idx;
 }
 
-std::vector<math::Vector4f> trs_from_matrix(math::Matrix4f mat) {
-  std::vector<math::Vector4f> trs;
-  return trs;
-}
-
-void decompress_anim_frame_fixed(level_tools::UncompressedJointAnim& anim,
-                                 const level_tools::JointAnimCompressedFixed& fixed,
-                                 int num_joints) {
-  constexpr float kQuatScale = 0.000030517578125;
-  constexpr float kScaleScale = 0.000244140625;
+level_tools::UncompressedJointAnim decompress_anim(const level_tools::ArtJointAnim& art_anim) {
+  constexpr float kQuatScale = 0.000030517578125f;
+  constexpr float kScaleScale = 0.000244140625f;
   constexpr float kTransScale = 4.f / 4096.f;
-  auto deref_f32 = [&](void*& ptr) {
-    // float f;
-    float f = *(float*)ptr;
-    // memcpy(&f, ptr, sizeof(float));
-    ptr = (u8*)ptr + sizeof(float);
-    return f;
+
+  auto read_f32 = [](const u8*& ptr) -> float {
+    float v;
+    memcpy(&v, ptr, 4);
+    ptr += 4;
+    return v;
   };
-  auto fderef_s16 = [&](void*& ptr) {
-    float f;
-    // s16 val = *(s16*)ptr;
-    memcpy(&f, ptr, sizeof(s16));
-    ptr = (u8*)ptr + sizeof(s16);
-    return f;
+  auto read_s16 = [](const u8*& ptr) -> float {
+    s16 v;
+    memcpy(&v, ptr, 2);
+    ptr += 2;
+    return (float)v;
   };
-  auto& frame = anim.joints.emplace_back();
-  auto cbits = fixed.hdr.control_bits;
-  auto data64 = (void*)fixed.data64.data();
-  auto data32 = (void*)fixed.data32.data();
-  auto data16 = (void*)fixed.data16.data();
-  std::vector<math::Vector4f> t;
-  std::vector<math::Vector4f> r;
-  std::vector<math::Vector4f> s;
-  // TODO align and prejoint matrices
-  if (fixed.mat[0]) {
-    // auto trs = trs_from_matrix(fixed.mats[0]);
-    // data64 += 4 * 4 * sizeof(float) / sizeof(u64);
-  }
-  if (fixed.mat[1]) {
-    // auto trs = trs_from_matrix(fixed.mats[1]);
-    // data64 += 4 * 4 * sizeof(float) / sizeof(u64);
-  }
+
+  const auto& ctrl = art_anim.frames;
+  const auto& fixed = ctrl.fixed;
+  const auto& hdr = fixed.hdr;
+  int num_joints = (int)hdr.num_joints;
+  int total_frames = (int)ctrl.num_frames;
+
+  level_tools::UncompressedJointAnim out;
+  out.name = art_anim.name;
+  out.framerate = 30.f;
+  out.frames = total_frames;
+  out.joints.resize(2 + num_joints);
+
+  const u8* d64 = (const u8*)fixed.data64.data();
+  const u8* d32 = (const u8*)fixed.data32.data();
+  const u8* d16 = (const u8*)fixed.data16.data();
+
+  if (fixed.mat[0])
+    d64 += 64;
+  if (fixed.mat[1])
+    d64 += 64;
 
   for (int tqi = 0; tqi < num_joints; tqi++) {
-    auto ctrl_idx = tqi / 8;
-    auto ctrl_shift = 4 * (tqi % 8);
-    auto ctrl = 0b1111 & (cbits[ctrl_idx] >> ctrl_shift);
-    // trans
-    if (!ctrl & 0b0001) {
-      if (ctrl & 0b1000) {
-        // big trans
-        t.emplace_back(deref_f32(data64), deref_f32(data64), deref_f32(data32), 1.0);
+    int ctrl_idx = tqi / 8;
+    int ctrl_shift = 4 * (tqi % 8);
+    int c = 0xf & (hdr.control_bits[ctrl_idx] >> ctrl_shift);
+    auto& joint = out.joints[2 + tqi];
+
+    if (!(c & 0b0001)) {
+      math::Vector3f t;
+      if (c & 0b1000) {
+        t.x() = read_f32(d64) / 4096.f;
+        t.y() = read_f32(d64) / 4096.f;
+        t.z() = read_f32(d32) / 4096.f;
       } else {
-        // little trans
-        t.emplace_back(fderef_s16(data32) * 0.4f, fderef_s16(data32) * 0.4f,
-                       fderef_s16(data32) * 0.4f, 1.0);
+        t.x() = read_s16(d32) * kTransScale;
+        t.y() = read_s16(d32) * kTransScale;
+        t.z() = read_s16(d16) * kTransScale;
       }
+      joint.trans_frames.push_back(t);
     }
-    // quat
-    if (!ctrl & 0b0010) {
-      auto& quat = r.emplace_back(fderef_s16(data64), fderef_s16(data64), fderef_s16(data64),
-                                  fderef_s16(data64));
+
+    if (!(c & 0b0010)) {
+      math::Vector4f q;
+      q.x() = read_s16(d64) * kQuatScale;
+      q.y() = read_s16(d64) * kQuatScale;
+      q.z() = read_s16(d64) * kQuatScale;
+      q.w() = read_s16(d64) * kQuatScale;
+      joint.quat_frames.push_back(q);
     }
-    // scale
-    if (!ctrl & 0b0100) {
-      s.emplace_back(fderef_s16(data32) * kScaleScale, fderef_s16(data32) * kScaleScale,
-                     fderef_s16(data16) * kScaleScale, 1.0);
+
+    if (!(c & 0b0100)) {
+      math::Vector3f s;
+      s.x() = read_s16(d32) * kScaleScale;
+      s.y() = read_s16(d32) * kScaleScale;
+      s.z() = read_s16(d16) * kScaleScale;
+      joint.scale_frames.push_back(s);
     }
   }
+
+  for (int fi = 0; fi < total_frames; fi++) {
+    const auto& frame = ctrl.frame[fi];
+    const u8* fd64 = (const u8*)frame.data64.data();
+    const u8* fd32 = (const u8*)frame.data32.data();
+    const u8* fd16 = (const u8*)frame.data16.data();
+
+    if (!fixed.mat[0])
+      fd64 += 64;
+    if (!fixed.mat[1])
+      fd64 += 64;
+
+    for (int tqi = 0; tqi < num_joints; tqi++) {
+      int ctrl_idx = tqi / 8;
+      int ctrl_shift = 4 * (tqi % 8);
+      int c = 0xf & (hdr.control_bits[ctrl_idx] >> ctrl_shift);
+      auto& joint = out.joints[2 + tqi];
+
+      if (c & 0b0001) {
+        math::Vector3f t;
+        if (c & 0b1000) {
+          t.x() = read_f32(fd64) / 4096.f;
+          t.y() = read_f32(fd64) / 4096.f;
+          t.z() = read_f32(fd32) / 4096.f;
+        } else {
+          t.x() = read_s16(fd32) * kTransScale;
+          t.y() = read_s16(fd32) * kTransScale;
+          t.z() = read_s16(fd16) * kTransScale;
+        }
+        joint.trans_frames.push_back(t);
+      }
+
+      if (c & 0b0010) {
+        math::Vector4f q;
+        q.x() = read_s16(fd64) * kQuatScale;
+        q.y() = read_s16(fd64) * kQuatScale;
+        q.z() = read_s16(fd64) * kQuatScale;
+        q.w() = read_s16(fd64) * kQuatScale;
+        joint.quat_frames.push_back(q);
+      }
+
+      if (c & 0b0100) {
+        math::Vector3f s;
+        s.x() = read_s16(fd32) * kScaleScale;
+        s.y() = read_s16(fd32) * kScaleScale;
+        s.z() = read_s16(fd16) * kScaleScale;
+        joint.scale_frames.push_back(s);
+      }
+    }
+  }
+
+  for (int ji = 2; ji < (int)out.joints.size(); ji++) {
+    auto& joint = out.joints[ji];
+    while ((int)joint.trans_frames.size() < total_frames) {
+      if (joint.trans_frames.empty())
+        joint.trans_frames.emplace_back(0.f, 0.f, 0.f);
+      else
+        joint.trans_frames.push_back(joint.trans_frames[0]);
+    }
+    while ((int)joint.quat_frames.size() < total_frames) {
+      if (joint.quat_frames.empty())
+        joint.quat_frames.emplace_back(0.f, 0.f, 0.f, 1.f);
+      else
+        joint.quat_frames.push_back(joint.quat_frames[0]);
+    }
+    while ((int)joint.scale_frames.size() < total_frames) {
+      if (joint.scale_frames.empty())
+        joint.scale_frames.emplace_back(1.f, 1.f, 1.f);
+      else
+        joint.scale_frames.push_back(joint.scale_frames[0]);
+    }
+  }
+
+  return out;
 }
 
-void decompress_anim_frame(level_tools::UncompressedJointAnim& anim,
-                           const level_tools::JointAnimCompressedHDR& hdr,
-                           const level_tools::JointAnimCompressedFrame& frame,
-                           int num_joints) {}
+int make_anim_float_accessor(const std::vector<float>& values, tinygltf::Model& model) {
+  int buf_idx = (int)model.buffers.size();
+  auto& buf = model.buffers.emplace_back();
+  buf.data.resize(values.size() * sizeof(float));
+  memcpy(buf.data.data(), values.data(), buf.data.size());
+
+  int bv_idx = (int)model.bufferViews.size();
+  auto& bv = model.bufferViews.emplace_back();
+  bv.buffer = buf_idx;
+  bv.byteOffset = 0;
+  bv.byteLength = buf.data.size();
+
+  int acc_idx = (int)model.accessors.size();
+  auto& acc = model.accessors.emplace_back();
+  acc.bufferView = bv_idx;
+  acc.byteOffset = 0;
+  acc.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+  acc.count = (int)values.size();
+  acc.type = TINYGLTF_TYPE_SCALAR;
+  if (!values.empty()) {
+    float mn = values[0], mx = values[0];
+    for (float v : values) {
+      mn = std::min(mn, v);
+      mx = std::max(mx, v);
+    }
+    acc.minValues = {(double)mn};
+    acc.maxValues = {(double)mx};
+  }
+  return acc_idx;
+}
+
+int make_anim_vec3_accessor(const std::vector<math::Vector3f>& values, tinygltf::Model& model) {
+  static_assert(sizeof(math::Vector3f) == 3 * sizeof(float));
+  int buf_idx = (int)model.buffers.size();
+  auto& buf = model.buffers.emplace_back();
+  buf.data.resize(values.size() * sizeof(math::Vector3f));
+  memcpy(buf.data.data(), values.data(), buf.data.size());
+
+  int bv_idx = (int)model.bufferViews.size();
+  auto& bv = model.bufferViews.emplace_back();
+  bv.buffer = buf_idx;
+  bv.byteOffset = 0;
+  bv.byteLength = buf.data.size();
+
+  int acc_idx = (int)model.accessors.size();
+  auto& acc = model.accessors.emplace_back();
+  acc.bufferView = bv_idx;
+  acc.byteOffset = 0;
+  acc.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+  acc.count = (int)values.size();
+  acc.type = TINYGLTF_TYPE_VEC3;
+  return acc_idx;
+}
+
+int make_anim_vec4_accessor(const std::vector<math::Vector4f>& values, tinygltf::Model& model) {
+  static_assert(sizeof(math::Vector4f) == 4 * sizeof(float));
+  int buf_idx = (int)model.buffers.size();
+  auto& buf = model.buffers.emplace_back();
+  buf.data.resize(values.size() * sizeof(math::Vector4f));
+  memcpy(buf.data.data(), values.data(), buf.data.size());
+
+  int bv_idx = (int)model.bufferViews.size();
+  auto& bv = model.bufferViews.emplace_back();
+  bv.buffer = buf_idx;
+  bv.byteOffset = 0;
+  bv.byteLength = buf.data.size();
+
+  int acc_idx = (int)model.accessors.size();
+  auto& acc = model.accessors.emplace_back();
+  acc.bufferView = bv_idx;
+  acc.byteOffset = 0;
+  acc.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+  acc.count = (int)values.size();
+  acc.type = TINYGLTF_TYPE_VEC4;
+  return acc_idx;
+}
+
+void add_animation_to_gltf(const level_tools::UncompressedJointAnim& anim,
+                           const tinygltf::Skin& skin,
+                           tinygltf::Model& model) {
+  if (anim.frames == 0 || anim.joints.size() <= 2)
+    return;
+
+  auto& gltf_anim = model.animations.emplace_back();
+  gltf_anim.name = anim.name;
+
+  std::vector<float> times(anim.frames);
+  for (int i = 0; i < anim.frames; i++)
+    times[i] = i / anim.framerate;
+  int time_acc = make_anim_float_accessor(times, model);
+
+  int n_anim_joints = (int)anim.joints.size();
+  int n_skin_joints = (int)skin.joints.size();
+  for (int ji = 2; ji < n_anim_joints && ji < n_skin_joints; ji++) {
+    const auto& joint = anim.joints[ji];
+    int target_node = skin.joints[ji];
+
+    auto add_channel = [&](int val_acc, const std::string& path) {
+      int si = (int)gltf_anim.samplers.size();
+      auto& sampler = gltf_anim.samplers.emplace_back();
+      sampler.input = time_acc;
+      sampler.output = val_acc;
+      sampler.interpolation = "LINEAR";
+      auto& channel = gltf_anim.channels.emplace_back();
+      channel.sampler = si;
+      channel.target_node = target_node;
+      channel.target_path = path;
+    };
+
+    if ((int)joint.trans_frames.size() == anim.frames)
+      add_channel(make_anim_vec3_accessor(joint.trans_frames, model), "translation");
+    if ((int)joint.quat_frames.size() == anim.frames)
+      add_channel(make_anim_vec4_accessor(joint.quat_frames, model), "rotation");
+    if ((int)joint.scale_frames.size() == anim.frames)
+      add_channel(make_anim_vec3_accessor(joint.scale_frames, model), "scale");
+  }
+}
 
 void add_merc(const tfrag3::Level& level,
               const std::map<std::string, level_tools::ArtData>& art_data,
               const tfrag3::MercModel& mmodel,
               tinygltf::Model& model,
               std::unordered_map<int, int>& tex_image_map) {
+  lg::info("adding merc mdl: {}", mmodel.name);
   const auto& mverts = level.merc_data.vertices;
 
   // create position and uv buffers
@@ -1038,6 +1235,9 @@ void add_merc(const tfrag3::Level& level,
   node.mesh = mesh_idx;
 
   if (art != art_data.end() && !art->second.joint_group.empty()) {
+    if (mmodel.name == "blue-eco-charger-lod0") {
+      ;
+    }
     node.skin = model.skins.size();
     auto& skin = model.skins.emplace_back();
     const auto& game_bones = art->second.joint_group;
@@ -1082,24 +1282,21 @@ void add_merc(const tfrag3::Level& level,
       }
     }
     ASSERT(skin.skeleton + n_bones == (int)model.nodes.size());
+    if (mmodel.name == "blue-eco-charger-lod0") {
+      ;
+    }
     skin.inverseBindMatrices = make_inv_matrix_bind_poses(game_bones, model);
+    if (mmodel.name == "blue-eco-charger-lod0") {
+      ;
+    }
   }
 
-  if (art != art_data.end() && !art->second.anims.empty()) {
-    for (auto& anim : art->second.anims) {
-      tinygltf::Animation& gltf_anim = model.animations.emplace_back();
-      gltf_anim.name = anim.name;
-      level_tools::UncompressedJointAnim uncompressed_anim;
-      uncompressed_anim.name = anim.name;
-      uncompressed_anim.framerate = 30;
-      uncompressed_anim.frames = anim.frames.num_frames;
-      // decompress_anim_frame_fixed(fixed_frame, anim.frames.fixed,
-      // anim.frames.fixed.hdr.num_joints);
-      for (auto& frame : anim.frames.frame) {
-        // decompress_anim_frame(uncompressed_anim, anim.frames.fixed.hdr, frame,
-        //                       anim.frames.fixed.hdr.num_joints);
-        auto& channel = gltf_anim.channels.emplace_back();
-      }
+  if (art != art_data.end() && !art->second.anims.empty() && node.skin >= 0 &&
+      node.skin < model.skins.size()) {
+    const auto& skin = model.skins[node.skin];
+    for (const auto& art_anim : art->second.anims) {
+      auto uncompressed = decompress_anim(art_anim);
+      add_animation_to_gltf(uncompressed, skin, model);
     }
   }
 

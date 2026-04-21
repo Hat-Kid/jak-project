@@ -25,7 +25,7 @@ struct UncompressedSingleJointAnim {
 struct UncompressedJointAnim {
   std::string name;
   std::vector<UncompressedSingleJointAnim> joints;
-  float framerate = 60;
+  float framerate = 30;
   int frames = 0;
 };
 
