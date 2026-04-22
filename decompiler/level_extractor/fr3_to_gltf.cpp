@@ -948,7 +948,7 @@ level_tools::UncompressedJointAnim decompress_anim(const level_tools::ArtJointAn
     s16 v;
     memcpy(&v, ptr, 2);
     ptr += 2;
-    return (float)v;
+    return v;
   };
 
   const auto& ctrl = art_anim.frames;
@@ -959,13 +959,13 @@ level_tools::UncompressedJointAnim decompress_anim(const level_tools::ArtJointAn
 
   level_tools::UncompressedJointAnim out;
   out.name = art_anim.name;
-  out.framerate = 30.f;
+  out.framerate = art_anim.speed > 0.f ? art_anim.speed * 60.f : 30.f;
   out.frames = total_frames;
   out.joints.resize(2 + num_joints);
 
-  const u8* d64 = (const u8*)fixed.data64.data();
-  const u8* d32 = (const u8*)fixed.data32.data();
-  const u8* d16 = (const u8*)fixed.data16.data();
+  auto d64 = (const u8*)fixed.data64.data();
+  auto d32 = (const u8*)fixed.data32.data();
+  auto d16 = (const u8*)fixed.data16.data();
 
   if (fixed.mat[0])
     d64 += 64;
@@ -1012,14 +1012,14 @@ level_tools::UncompressedJointAnim decompress_anim(const level_tools::ArtJointAn
 
   for (int fi = 0; fi < total_frames; fi++) {
     const auto& frame = ctrl.frame[fi];
-    const u8* fd64 = (const u8*)frame.data64.data();
-    const u8* fd32 = (const u8*)frame.data32.data();
-    const u8* fd16 = (const u8*)frame.data16.data();
+    const u8* data64 = (const u8*)frame.data64.data();
+    const u8* data32 = (const u8*)frame.data32.data();
+    const u8* data16 = (const u8*)frame.data16.data();
 
     if (!fixed.mat[0])
-      fd64 += 64;
+      data64 += sizeof(math::Matrix4f);
     if (!fixed.mat[1])
-      fd64 += 64;
+      data64 += sizeof(math::Matrix4f);
 
     for (int tqi = 0; tqi < num_joints; tqi++) {
       int ctrl_idx = tqi / 8;
@@ -1030,31 +1030,31 @@ level_tools::UncompressedJointAnim decompress_anim(const level_tools::ArtJointAn
       if (c & 0b0001) {
         math::Vector3f t;
         if (c & 0b1000) {
-          t.x() = read_f32(fd64) / 4096.f;
-          t.y() = read_f32(fd64) / 4096.f;
-          t.z() = read_f32(fd32) / 4096.f;
+          t.x() = read_f32(data64) / 4096.f;
+          t.y() = read_f32(data64) / 4096.f;
+          t.z() = read_f32(data32) / 4096.f;
         } else {
-          t.x() = read_s16(fd32) * kTransScale;
-          t.y() = read_s16(fd32) * kTransScale;
-          t.z() = read_s16(fd16) * kTransScale;
+          t.x() = read_s16(data32) * kTransScale;
+          t.y() = read_s16(data32) * kTransScale;
+          t.z() = read_s16(data16) * kTransScale;
         }
         joint.trans_frames.push_back(t);
       }
 
       if (c & 0b0010) {
         math::Vector4f q;
-        q.x() = read_s16(fd64) * kQuatScale;
-        q.y() = read_s16(fd64) * kQuatScale;
-        q.z() = read_s16(fd64) * kQuatScale;
-        q.w() = read_s16(fd64) * kQuatScale;
+        q.x() = read_s16(data64) * kQuatScale;
+        q.y() = read_s16(data64) * kQuatScale;
+        q.z() = read_s16(data64) * kQuatScale;
+        q.w() = read_s16(data64) * kQuatScale;
         joint.quat_frames.push_back(q);
       }
 
       if (c & 0b0100) {
         math::Vector3f s;
-        s.x() = read_s16(fd32) * kScaleScale;
-        s.y() = read_s16(fd32) * kScaleScale;
-        s.z() = read_s16(fd16) * kScaleScale;
+        s.x() = read_s16(data32) * kScaleScale;
+        s.y() = read_s16(data32) * kScaleScale;
+        s.z() = read_s16(data16) * kScaleScale;
         joint.scale_frames.push_back(s);
       }
     }
@@ -1235,9 +1235,6 @@ void add_merc(const tfrag3::Level& level,
   node.mesh = mesh_idx;
 
   if (art != art_data.end() && !art->second.joint_group.empty()) {
-    if (mmodel.name == "blue-eco-charger-lod0") {
-      ;
-    }
     node.skin = model.skins.size();
     auto& skin = model.skins.emplace_back();
     const auto& game_bones = art->second.joint_group;
@@ -1282,20 +1279,14 @@ void add_merc(const tfrag3::Level& level,
       }
     }
     ASSERT(skin.skeleton + n_bones == (int)model.nodes.size());
-    if (mmodel.name == "blue-eco-charger-lod0") {
-      ;
-    }
     skin.inverseBindMatrices = make_inv_matrix_bind_poses(game_bones, model);
-    if (mmodel.name == "blue-eco-charger-lod0") {
-      ;
-    }
   }
 
   if (art != art_data.end() && !art->second.anims.empty() && node.skin >= 0 &&
       node.skin < model.skins.size()) {
     const auto& skin = model.skins[node.skin];
-    for (const auto& art_anim : art->second.anims) {
-      auto uncompressed = decompress_anim(art_anim);
+    for (const auto& ja : art->second.anims) {
+      auto uncompressed = decompress_anim(ja);
       add_animation_to_gltf(uncompressed, skin, model);
     }
   }
