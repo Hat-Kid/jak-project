@@ -48,7 +48,7 @@ static void parse_fixed_from_buf(const u8* p,
   fixed.mat[0] = (fixed.hdr.matrix_bits & 1) == 0;
   fixed.mat[1] = (fixed.hdr.matrix_bits & 2) == 0;
 
-  const u8* data = p + 80;  // data section starts after the 20-word (80-byte) header
+  const u8* data = p + 80;
   int d64 = (int)fixed.data64_size;
   int d32 = (int)fixed.data32_size;
   int d16 = (int)fixed.data16_size;
@@ -101,11 +101,10 @@ void extract_animations(const ObjectFileData& ag_data,
   // lg::info("extracting anims for ag {}", ag_data.name_in_dgo);
   auto ja_locs = find_objects_with_type(ag_data.linked_data, "art-joint-anim");
   if (ja_locs.empty()) {
-    lg::warn("extract_animations: art group {} has no anims, skipping\n",
-             ag_data.name_in_dgo);
+    lg::warn("extract_animations: art group {} has no anims, skipping\n", ag_data.name_in_dgo);
     return;
   }
-  // jak 2/3 split the first word into num-frames + flags.
+  // jak 2/3 split the first word into num-frames + flags
   const bool has_flags = version != GameVersion::Jak1;
   for (auto loc : ja_locs) {
     TypedRef ref(Ref{&ag_data.linked_data, 0, loc * 4}, dts.ts.lookup_type("art-joint-anim"));
@@ -133,11 +132,45 @@ void extract_animations(const ObjectFileData& ag_data,
 
     if (lzo_compressed) {
       size_t decompressed_size =
-          ((size_t)ja.frames.fixed_qwc + (size_t)ja.frames.num_frames * ja.frames.frame_qwc) *
-          16;
+          ((size_t)ja.frames.fixed_qwc + (size_t)ja.frames.num_frames * ja.frames.frame_qwc) * 16;
 
-      auto compressed = get_plain_data_bytes_up_to_label(fixed_ref);
+      // The LZO stream may be split across non-contiguous PLAIN_DATA regions in the DGO.
+      // Frame label refs point to the start of each subsequent chunk in the compressed stream.
+      std::vector<u8> compressed = {};
+      size_t read_bytes = 0;
+      compressed.reserve(decompressed_size);
+      std::vector<u8> fixed_bytes = bytes_from_plain_data(fixed_ref, ja.frames.fixed_qwc * 16);
+      compressed.insert(compressed.end(), fixed_bytes.begin(), fixed_bytes.end());
+      read_bytes += ja.frames.fixed_qwc * 16;
       ASSERT(!compressed.empty());
+      int read_end_seg_offset = fixed_ref.byte_offset + (int)compressed.size();
+
+      Ref frame_ptr_ref = jacc;
+      frame_ptr_ref.byte_offset += 16;
+      bool hit_end_of_compressed_stream = false;
+      for (int i = 0; i < (int)ja.frames.num_frames; i++) {
+        Ref frame_ref = deref_label(frame_ptr_ref);
+        std::vector<u8> chunk;
+        std::deque<u8> last_three;
+        for (int b = 0; b < ja.frames.frame_qwc * 16; b++) {
+          u8 byte = deref_u8(frame_ref, b);
+          read_bytes += sizeof(u8);
+          if (last_three.size() == 3) {
+            last_three.pop_front();
+          }
+          last_three.push_back(byte);
+          chunk.push_back(byte);
+          if (last_three[0] == 0x11 && last_three[1] == 0x00 && last_three[2] == 0x00) {
+            hit_end_of_compressed_stream = true;
+            break;
+          }
+        }
+        compressed.insert(compressed.end(), chunk.begin(), chunk.end());
+        frame_ptr_ref.byte_offset += 4;
+        if (hit_end_of_compressed_stream) {
+          break;
+        }
+      }
 
       std::vector<u8> decompressed(decompressed_size);
       size_t out_size = 0;
@@ -163,7 +196,7 @@ void extract_animations(const ObjectFileData& ag_data,
       int fixed_word_off = 0;
 
       // fixed hdr
-      memcpy_from_plain_data((u8*)ja.frames.fixed.hdr.control_bits, fixed_ref, 4 * 14);
+      memcpy_from_plain_data((u8*)ja.frames.fixed.hdr.control_bits, fixed_ref, sizeof(u32) * 14);
       fixed_word_off += 14;
       ja.frames.fixed.hdr.num_joints = deref_u32(fixed_ref, fixed_word_off++);
       ja.frames.fixed.hdr.matrix_bits = deref_u32(fixed_ref, fixed_word_off++);
