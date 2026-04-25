@@ -99,6 +99,45 @@ void extract_animations(const ObjectFileData& ag_data,
                         GameVersion version,
                         std::map<std::string, level_tools::ArtData>& out) {
   // lg::info("extracting anims for ag {}", ag_data.name_in_dgo);
+  // ban animations that have very weird data layouts due to being compressed
+  PerGameVersion<std::vector<std::string>> banned_anims = {{},
+                                                           {"jakb-walk",
+                                                            "jakb-edge-grab-stance0",
+                                                            "jakb-deatha",
+                                                            "jakb-slide-right",
+                                                            "jakb-slide-left",
+                                                            "jakb-wall-hide-scared-return",
+                                                            "jakb-wall-hide-head",
+                                                            "jakb-wall-hide-head-left",
+                                                            "jakb-wall-hide-head-right",
+                                                            "jakb-wall-hide-body",
+                                                            "jakb-fuel-cell-victory-9",
+                                                            "daxter-edge-grab-stance0",
+                                                            "daxter-slide-right",
+                                                            "daxter-slide-left",
+                                                            "daxter-wall-hide-head",
+                                                            "daxter-wall-hide-head-right",
+                                                            "daxter-fuel-cell-victory-9",
+                                                            "daxter-attack-from-jump-loop",
+                                                            "daxter-flop-down-loop",
+                                                            "daxter-moving-flop-down-loop",
+                                                            "daxter-hit-up",
+                                                            "daxter-gun-jump-land",
+                                                            "daxter-gun-jump-land-side",
+                                                            "daxter-gun-flop-down",
+                                                            "daxter-gun-flop-down-loop",
+                                                            "jakb-gun-stance-blue",
+                                                            "jakb-gun-duck-roll",
+                                                            "jakb-gun-flop-down",
+                                                            "daxter-board-stance",
+                                                            "daxter-board-flip-forward-loop",
+                                                            "daxter-board-kickflip-c",
+                                                            "jakb-board-stance",
+                                                            "jakb-board-kickflip-c",
+                                                            "daxter-darkjak-attack-combo3-end",
+                                                            "daxter-darkjak-attack-ice-loop2"},
+                                                           {},
+                                                           {}};
   auto ja_locs = find_objects_with_type(ag_data.linked_data, "art-joint-anim");
   if (ja_locs.empty()) {
     lg::warn("extract_animations: art group {} has no anims, skipping\n", ag_data.name_in_dgo);
@@ -111,13 +150,17 @@ void extract_animations(const ObjectFileData& ag_data,
     auto master_art_name = read_string_field(ref, "master-art-group-name", dts, false);
     level_tools::ArtJointAnim ja;
     ja.name = read_string_field(ref, "name", dts, false);
+    if (std::ranges::find(banned_anims[version], ja.name) != banned_anims[version].end()) {
+      lg::info("skipping banned anim {} for {}", ja.name, ag_data.name_in_dgo);
+      continue;
+    }
     ja.speed = read_plain_data_field<float>(ref, "speed", dts);
     ja.artist_base = read_plain_data_field<float>(ref, "artist-base", dts);
     ja.artist_step = read_plain_data_field<float>(ref, "artist-step", dts);
     Ref jacc = deref_label(get_field_ref(ref, "frames", dts));
     int jacc_word_off = 0;
     u32 first_word = deref_u32(jacc, jacc_word_off++);
-    ja.frames.num_frames = has_flags ? (first_word & 0xFFFF) : first_word;
+    ja.frames.num_frames = has_flags ? (first_word & 0xffff) : first_word;
     ja.frames.fixed_qwc = deref_u32(jacc, jacc_word_off++);
     ja.frames.frame_qwc = deref_u32(jacc, jacc_word_off++);
 
@@ -134,38 +177,132 @@ void extract_animations(const ObjectFileData& ag_data,
       size_t decompressed_size =
           ((size_t)ja.frames.fixed_qwc + (size_t)ja.frames.num_frames * ja.frames.frame_qwc) * 16;
 
-      // The LZO stream may be split across non-contiguous PLAIN_DATA regions in the DGO.
-      // Frame label refs point to the start of each subsequent chunk in the compressed stream.
+      // the lzo stream may be split across non-contiguous labels in the art groups so we have to go
+      // label by label and can't just memcpy the assumed size
+      // on top of that, there is not really a way to know when and where the stream ends until we
+      // encounter the lzo terminating sequence 0x11 0x00 0x00
+      // on top of THAT, some of the labels can just have a wrong size or point to a
+      // completely different random thing
       std::vector<u8> compressed = {};
-      size_t read_bytes = 0;
+      size_t read_bytes_total = 0;
       compressed.reserve(decompressed_size);
-      std::vector<u8> fixed_bytes = bytes_from_plain_data(fixed_ref, ja.frames.fixed_qwc * 16);
-      compressed.insert(compressed.end(), fixed_bytes.begin(), fixed_bytes.end());
-      read_bytes += ja.frames.fixed_qwc * 16;
-      ASSERT(!compressed.empty());
-      int read_end_seg_offset = fixed_ref.byte_offset + (int)compressed.size();
+      // std::vector<u8> fixed_bytes = bytes_from_plain_data(fixed_ref, ja.frames.fixed_qwc * 16);
+      // compressed.insert(compressed.end(), fixed_bytes.begin(), fixed_bytes.end());
+      // read_bytes_total += ja.frames.fixed_qwc * 16;
+      {
+        auto first = fixed_ref.data->words_by_seg.at(fixed_ref.seg).at((fixed_ref.byte_offset) / 4);
+        lg::info("fixed first word: 0x{:x}", first.data);
+        auto fixed_label = ag_data.linked_data.get_label_at(fixed_ref.seg, fixed_ref.byte_offset);
+        lg::info("fixed label {}", fixed_ref.data->labels.at(fixed_label).name);
+        size_t read_bytes_fixed = 0;
+        for (int b = 0; b < ja.frames.fixed_qwc * 16; b++) {
+          u8 byte = deref_u8(fixed_ref, b);
+          read_bytes_total += sizeof(u8);
+          read_bytes_fixed += sizeof(u8);
+          compressed.push_back(byte);
+          auto next_word = b;
+          while (next_word % 4) {
+            next_word += 1;
+          }
+          // auto label_at =
+          //     ag_data.linked_data.get_label_at(fixed_ref.seg, fixed_ref.byte_offset + next_word);
+          // if (label_at != -1 && label_at != fixed_label && b < ja.frames.fixed_qwc * 16 - 4) {
+          //   lg::info("hit an unexpected label {} in fixed, breaking...",
+          //            fixed_ref.data->labels.at(label_at).name);
+          //   break;
+          // }
+        }
+        if (read_bytes_fixed != ja.frames.fixed_qwc * 16) {
+          lg::warn("read {} bytes for fixed (total should be {} qw/{} bytes)", read_bytes_fixed,
+                   ja.frames.fixed_qwc, ja.frames.fixed_qwc * 16);
+        } else {
+          lg::info("read {} bytes for fixed", read_bytes_fixed);
+        }
+      }
 
       Ref frame_ptr_ref = jacc;
       frame_ptr_ref.byte_offset += 16;
       bool hit_end_of_compressed_stream = false;
       for (int i = 0; i < (int)ja.frames.num_frames; i++) {
         Ref frame_ref = deref_label(frame_ptr_ref);
+        const auto& frame_label = frame_ptr_ref.data->words_by_seg.at(frame_ptr_ref.seg)
+                                      .at(frame_ptr_ref.byte_offset / 4)
+                                      .label_id();
+        lg::info("frame {} label {}", i, frame_ptr_ref.data->labels.at(frame_label).name);
+        lg::info(
+            "first word: 0x{:x}",
+            frame_ref.data->words_by_seg.at(frame_ref.seg).at((frame_ref.byte_offset) / 4).data);
         std::vector<u8> chunk;
         std::deque<u8> last_three;
+        size_t read_bytes_frame = 0;
         for (int b = 0; b < ja.frames.frame_qwc * 16; b++) {
-          u8 byte = deref_u8(frame_ref, b);
-          read_bytes += sizeof(u8);
-          if (last_three.size() == 3) {
-            last_three.pop_front();
-          }
-          last_three.push_back(byte);
-          chunk.push_back(byte);
-          if (last_three[0] == 0x11 && last_three[1] == 0x00 && last_three[2] == 0x00) {
-            hit_end_of_compressed_stream = true;
+          if (hit_end_of_compressed_stream) {
             break;
+          }
+          auto label_at =
+              ag_data.linked_data.get_label_at(frame_ref.seg, frame_ref.byte_offset + (b + 4) & ~3);
+          if (frame_ref.byte_offset % 4 != 0 && label_at != -1 && label_at != frame_label) {
+            lg::info("hit an unexpected label {}, breaking...",
+                     frame_ref.data->labels.at(label_at).name);
+            break;
+          }
+          u8 byte = deref_u8(frame_ref, b);
+          read_bytes_total += sizeof(u8);
+          read_bytes_frame += sizeof(u8);
+          last_three.push_back(byte);
+          if (last_three.size() >= 3) {
+            last_three.pop_front();
+            last_three.resize(3);
+            // lg::info("last three: 0x{:x} 0x{:x} 0x{:x}", last_three[0], last_three[1],
+            //          last_three[2]);
+          }
+          chunk.push_back(byte);
+          // if we hit the lzo terminating sequence, go forward until we hit the next label
+          if (last_three.size() >= 3 && last_three[0] == 0x11 && last_three[1] == 0x00 &&
+              last_three[2] == 0x00) {
+            lg::info("found lzo terminating sequence");
+            auto last = b;
+            while (last % 4) {
+              last -= 1;
+            }
+            lg::info("last word: 0x{:x}", frame_ref.data->words_by_seg.at(frame_ref.seg)
+                                              .at((frame_ref.byte_offset + last) / 4)
+                                              .data);
+            auto next = b;
+            while (next % 4) {
+              next += 1;
+            }
+            auto next_word = frame_ref.data->words_by_seg.at(frame_ref.seg)
+                                 .at((frame_ref.byte_offset + next) / 4);
+            lg::info("next word: 0x{:x} kind {}", next_word.data, (int)next_word.kind());
+            if (next_word.kind() != LinkedWord::PLAIN_DATA) {
+              hit_end_of_compressed_stream = true;
+              break;
+            }
+            while (next_word.data == 0x0) {
+              lg::info("checking for padding...");
+              next += 4;
+              next_word = frame_ref.data->words_by_seg.at(frame_ref.seg)
+                              .at((frame_ref.byte_offset + next) / 4);
+              lg::info("next+1 word: 0x{:x} kind {}", next_word.data, (int)next_word.kind());
+              if (next_word.kind() != LinkedWord::PLAIN_DATA) {
+                hit_end_of_compressed_stream = true;
+                break;
+              }
+              auto label_next =
+                  ag_data.linked_data.get_label_at(frame_ref.seg, frame_ref.byte_offset + next);
+              if ((frame_ref.byte_offset + next) % 4 != 0 && label_next != -1 &&
+                  label_next != frame_label) {
+                lg::info("hit next label {}, breaking...",
+                         frame_ref.data->labels.at(label_next).name);
+                hit_end_of_compressed_stream = true;
+                break;
+              }
+            }
           }
         }
         compressed.insert(compressed.end(), chunk.begin(), chunk.end());
+        lg::info("read {} bytes for frame {}", read_bytes_frame, i);
         frame_ptr_ref.byte_offset += 4;
         if (hit_end_of_compressed_stream) {
           break;
