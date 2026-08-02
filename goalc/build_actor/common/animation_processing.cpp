@@ -79,6 +79,17 @@ UncompressedJointAnim extract_anim_from_gltf(const tinygltf::Model& model,
   out.joints.resize(max_joint + 1);
   out.master_art_group_name = master_art_group;
   out.master_art_group_index = master_art_group_index;
+  // written by the GLTF exporter - can't be derived from the samples. missing on hand-made files,
+  // where the defaults (artist frames == 60 fps, starting at 0) are the sane guess.
+  if (anim.extras.Has("artist-base")) {
+    out.artist_base = (float)anim.extras.Get("artist-base").GetNumberAsDouble();
+  }
+  if (anim.extras.Has("artist-frame-rate")) {
+    const float rate = (float)anim.extras.Get("artist-frame-rate").GetNumberAsDouble();
+    if (rate > 0.f) {
+      out.artist_frame_rate = rate;
+    }
+  }
 
   for (const auto& channel : anim.channels) {
     const int channel_node_idx = channel.target_node;
@@ -244,6 +255,8 @@ CompressedAnim compress_animation(const UncompressedJointAnim& in) {
   out.frames.resize(in.frames);
   out.master_art_group_name = in.master_art_group_name;
   out.master_art_group_index = in.master_art_group_index;
+  out.artist_base = in.artist_base;
+  out.artist_frame_rate = in.artist_frame_rate;
   for (int matrix = 0; matrix < 2; matrix++) {
     const auto& joint_data = in.joints.at(matrix);
     if (is_matrix_constant(joint_data)) {

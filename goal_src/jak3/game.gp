@@ -426,6 +426,9 @@
 ;; - joint-channel: how many joint channels the actor should have. defaults to 6.
 ;; more complicated actors like jak that make a lot of use of animation blending can have 24+ channels.
 (build-actor "test-actor" :gen-mesh #t)
+;; jak 1 stored babak's animations at 7-30 fps depending on the animation, so 30 resamples them
+;; without losing anything while halving the art group vs. the 60 fps default.
+(build-actor "babak-enemy" :framerate 30.0)
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; ANIMATIONS

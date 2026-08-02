@@ -18,9 +18,13 @@ void extract(const std::string& name,
   int mesh_count = 0;
   int prim_count = 0;
   int joints = 3;
+  // if build-actor has to insert an "align" joint, every game joint sits one slot further down the
+  // bone list than the GLTF file says.
+  int extra_joint_offset = 0;
   auto skin_idx = find_single_skin(model, all_nodes);
   if (skin_idx) {
     joints += gltf_util::get_joint_count(model, *skin_idx);
+    extra_joint_offset = gltf_to_game_joint_offset(model, *skin_idx);
   }
 
   for (const auto& n : all_nodes) {
@@ -62,7 +66,8 @@ void extract(const std::string& name,
         ASSERT(out.new_colors.size() == out.new_vertices.size());
 
         if (prim.attributes.count("JOINTS_0") && prim.attributes.count("WEIGHTS_0")) {
-          auto joints_and_weights = gltf_util::extract_and_flatten_joints_and_weights(model, prim);
+          auto joints_and_weights =
+              gltf_util::extract_and_flatten_joints_and_weights(model, prim, extra_joint_offset);
           ASSERT(joints_and_weights.size() == verts.vtx.size());
           out.joints_and_weights.insert(out.joints_and_weights.end(), joints_and_weights.begin(),
                                         joints_and_weights.end());

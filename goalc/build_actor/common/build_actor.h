@@ -45,6 +45,8 @@ struct GltfJoint {
 };
 
 tinygltf::Model load_gltf_model(const fs::path& path);
+int gltf_to_game_joint_offset(const std::vector<GltfJoint>& gjoints);
+int gltf_to_game_joint_offset(const tinygltf::Model& model, int skin_idx);
 std::vector<GltfJoint> extract_skeleton(const tinygltf::Model& model, int skin_idx);
 std::vector<Joint> convert_joints(const std::vector<GltfJoint>& gjoints);
 std::vector<anim::CompressedAnim> process_anim(const tinygltf::Model& model,

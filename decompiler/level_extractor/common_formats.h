@@ -26,6 +26,11 @@ struct UncompressedJointAnim {
   std::string name;
   std::vector<UncompressedSingleJointAnim> joints;
   float framerate = 30;
+  // artist-base/artist-step let ja-aframe convert the frame numbers the animator worked in into
+  // stored frames. artist-step depends on the sample rate, so we keep the rate the artist's frames
+  // tick at instead - that survives re-sampling the animation.
+  float artist_base = 0;
+  float artist_frame_rate = 60;
   int frames = 0;
   std::vector<u8> blend_shape_data;
 };

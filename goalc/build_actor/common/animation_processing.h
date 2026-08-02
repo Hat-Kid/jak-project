@@ -22,6 +22,8 @@ struct UncompressedJointAnim {
   int master_art_group_index = -1;
   std::vector<UncompressedSingleJointAnim> joints;
   float framerate = 60;
+  float artist_base = 0;
+  float artist_frame_rate = 60;
   int frames = 0;
 };
 
@@ -53,7 +55,27 @@ struct CompressedAnim {
   bool matrix_animated[2] = {false, false};
   std::vector<CompressedJointMetadata> joint_metadata;
   float framerate = 60;
+  float artist_base = 0;
+  float artist_frame_rate = 60;
 };
+
+/*!
+ * The num-funcs step frame-num by (requested speed * the art-joint-anim's speed) once per tick, so
+ * an animation sampled at 15 fps has to advance a quarter of a frame per tick to last as long as it
+ * did in the source file.
+ */
+inline float playback_speed_for_framerate(float framerate) {
+  return framerate > 0.f ? framerate / 60.f : 1.f;
+}
+
+/*!
+ * ja-aframe divides an artist frame number by artist-step to get a stored frame, so artist-step is
+ * how many artist frames one stored frame covers. The original animations were authored at 15, 30 or
+ * 60 fps depending on the animation; 60 is the sane guess when we have nothing better.
+ */
+inline float artist_step_for_framerate(float framerate, float artist_frame_rate) {
+  return (framerate > 0.f && artist_frame_rate > 0.f) ? artist_frame_rate / framerate : 1.f;
+}
 
 /*!
  * Load animation data from GLTF file.

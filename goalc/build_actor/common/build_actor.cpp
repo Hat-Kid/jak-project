@@ -130,20 +130,33 @@ Joint convert_joint(const GltfJoint& joint,
   return Joint(joint.name, joint_index + prefix_joint_count, parent, fixed_matrix.transposed());
 }
 
-constexpr int kGltfToGameJointOffset = 1;
 /*!
- * Convert GTLF joint list to game joint list.
- * Currently, this inserts a single "align" joint and places the root joint of the GLTF as the
- * prejoint. However, we might want to change this, to allow GLTF files to specify "align" at some
- * point.
+ * Number of joints the game skeleton has before the GLTF ones. The GLTF exporter writes out the
+ * "align" joint, but older/hand-made files may not, in which case we make one up.
+ */
+int gltf_to_game_joint_offset(const std::vector<GltfJoint>& gjoints) {
+  return (!gjoints.empty() && gjoints.front().name == "align") ? 0 : 1;
+}
+
+int gltf_to_game_joint_offset(const tinygltf::Model& model, int skin_idx) {
+  const auto& joints = model.skins.at(skin_idx).joints;
+  return (!joints.empty() && model.nodes.at(joints.front()).name == "align") ? 0 : 1;
+}
+
+/*!
+ * Convert GTLF joint list to game joint list. The game expects "align" at index 0 and "prejoint" at
+ * index 1: if the GLTF has no "align", one is inserted and its root joint becomes the prejoint.
  */
 std::vector<Joint> convert_joints(const std::vector<GltfJoint>& gjoints) {
   std::vector<Joint> joints;
-  joints.emplace_back("align", 0, -1, math::Matrix4f::identity());
-  ASSERT(kGltfToGameJointOffset == joints.size());
+  const int offset = gltf_to_game_joint_offset(gjoints);
+  if (offset) {
+    joints.emplace_back("align", 0, -1, math::Matrix4f::identity());
+  }
+  ASSERT(offset == (int)joints.size());
   for (int gjoint_idx = 0; gjoint_idx < int(gjoints.size()); gjoint_idx++) {
     // using -1 as the parent index since gltf's shouldn't be child of align.
-    joints.push_back(convert_joint(gjoints[gjoint_idx], gjoint_idx, kGltfToGameJointOffset, -1));
+    joints.push_back(convert_joint(gjoints[gjoint_idx], gjoint_idx, offset, -1));
   }
 
   return joints;
@@ -160,8 +173,9 @@ std::vector<anim::CompressedAnim> process_anim(const tinygltf::Model& model,
   }
 
   std::map<int, int> node_to_joint;
+  const int offset = gltf_to_game_joint_offset(gjoints);
   for (size_t i = 0; i < gjoints.size(); i++) {
-    node_to_joint[gjoints[i].gltf_node_index] = i + kGltfToGameJointOffset;
+    node_to_joint[gjoints[i].gltf_node_index] = i + offset;
   }
 
   std::vector<anim::CompressedAnim> ret;

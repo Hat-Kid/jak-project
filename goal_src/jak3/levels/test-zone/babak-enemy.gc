@@ -1,0 +1,379 @@
+;;-*-Lisp-*-
+(in-package goal)
+
+(deftype babak-enemy (nav-enemy)
+  ()
+  )
+
+(def-actor babak-enemy
+  :bounds (0 2 0 3)
+  :longest-edge (meters 1)
+  :art (idle-ja
+        walk-ja
+        spot-ja
+        charge-ja
+        give-up-ja
+        give-up-hop-ja
+        win-ja
+        death-ja
+        jump-ja
+        jump-land-ja
+        taunt-ja
+        turn-ja
+        look-ja
+        stop-look-ja)
+  :joints (align prejoint main chest neck head jaw
+           Lshoulder Lelbow Lhand
+           Rshoulder Relbow Rhand Rarmhair
+           hips
+           Lthigh Lknee Lankle Lball
+           Rthigh Rknee Rankle Rball Rleghair
+           headhair frontring
+           LthumbA LthumbB LindexA LindexB LmiddleA LmiddleB Larmhair
+           RthumbA RthumbB RindexA RindexB RmiddleA RmiddleB
+           backhair Lleghair
+           LthumbC LindexC LmiddleC
+           RthumbC RindexC RmiddleC)
+  )
+
+(define *babak-enemy-nav-enemy-info*
+  (new 'static 'nav-enemy-info
+    :use-die-falling #f
+    :use-victory #t
+    :use-jump-blocked #t
+    :debug-draw-neck #f
+    :jump-debug-draw #f
+    :move-to-ground #t
+    :hover-if-no-ground #f
+    :idle-anim-script (new 'static 'inline-array idle-control-frame 3
+      (new 'static 'idle-control-frame :command (idle-control-cmd push) :param0 30)
+      (new 'static 'idle-control-frame
+        :command (idle-control-cmd play)
+        :anim #x2
+        :param0 2
+        :param1 4
+        :param2 '((new 'static 'bfloat :data 1.0) (new 'static 'bfloat :data 1.0))
+        )
+      (new 'static 'idle-control-frame)
+      )
+    :idle-anim 2
+    :notice-anim 4
+    :hostile-anim 5
+    ;; babak has no flinch animation, and dies in one hit, so it never enters the hit state.
+    :hit-anim 10
+    :knocked-anim 10
+    :knocked-land-anim 11
+    :die-anim 9
+    :die-falling-anim -1
+    :victory-anim 8
+    :jump-wind-up-anim 10
+    :jump-in-air-anim 10
+    :jump-land-anim 11
+    :neck-joint 5
+    :look-at-joint 6
+    :bullseye-joint 4
+    :notice-distance (meters 30)
+    :notice-distance-delta (meters 10)
+    :proximity-notice-distance (meters 20)
+    :default-hit-points 1.0
+    :gnd-collide-with (collide-spec backgnd)
+    :overlaps-others-collide-with-filter (collide-spec jak bot player-list)
+    :penetrate-knocked (penetrate
+      generic-attack
+      flop
+      punch
+      spin
+      roll
+      uppercut
+      bonk
+      tube
+      flut-attack
+      board
+      mech-punch
+      mech-bonk
+      dark-skin
+      dark-punch
+      dark-bomb
+      dark-smack
+      flut
+      shield
+      explode
+      jak-yellow-shot
+      jak-red-shot
+      jak-blue-shot
+      jak-dark-shot
+      enemy-yellow-shot
+      enemy-dark-shot
+      eco-yellow
+      knocked
+      )
+    :movement-gravity (meters -100)
+    :friction 0.8
+    :attack-shove-back (meters 3)
+    :attack-shove-up (meters 2)
+    :attack-mode 'generic
+    :attack-damage 2
+    :recover-gnd-collide-with (collide-spec backgnd crate obstacle hit-by-others-list pusher)
+    :knocked-can-land-timeout (seconds 0.1)
+    :knocked-recover-timeout (seconds 2)
+    :ragdoll-blend-out-time (seconds 0.25)
+    :ragdoll-rotate-velocity-mult 1.0
+    :jump-height-min (meters 3)
+    :jump-height-factor 0.5
+    :knocked-seek-ry-clamp 6371.5557
+    :knocked-soft-vxz-lo (meters 17.6)
+    :knocked-soft-vxz-hi (meters 26.4)
+    :knocked-soft-vy-lo (meters 20)
+    :knocked-soft-vy-hi (meters 30)
+    :knocked-medium-vxz-lo (meters 36)
+    :knocked-medium-vxz-hi (meters 48)
+    :knocked-medium-vy-lo (meters 33)
+    :knocked-medium-vy-hi (meters 37)
+    :knocked-hard-vxz-lo (meters 19.2)
+    :knocked-hard-vxz-hi (meters 28.8)
+    :knocked-hard-vy-lo (meters 44.8)
+    :knocked-hard-vy-hi (meters 51.2)
+    :knocked-huge-vxz-lo (meters 40.2)
+    :knocked-huge-vxz-hi (meters 60.8)
+    :knocked-huge-vy-lo (meters 44.8)
+    :knocked-huge-vy-hi (meters 53.2)
+    :knocked-yellow-vxz-lo (meters 10)
+    :knocked-yellow-vxz-hi (meters 12)
+    :knocked-yellow-vy-lo (meters 14)
+    :knocked-yellow-vy-hi (meters 20)
+    :knocked-red-vxz-lo (meters 6)
+    :knocked-red-vxz-hi (meters 48)
+    :knocked-red-vy-lo (meters 23)
+    :knocked-red-vy-hi (meters 37)
+    :knocked-blue-vxz-lo (meters 10)
+    :knocked-blue-vxz-hi (meters 12)
+    :knocked-blue-vy-lo (meters 6)
+    :knocked-blue-vy-hi (meters 20)
+    :ragdoll-info #f
+    :shadow-size (meters 2)
+    :shadow-max-y (meters 1)
+    :shadow-min-y (meters -1)
+    :shadow-locus-dist (meters 150)
+    :gem-joint -1
+    :gem-offset (new 'static 'sphere :r 163840.0)
+    :knocked-off #f
+    :callback-info #f
+    :use-momentum #f
+    :use-frustration #t
+    :use-stop-chase #t
+    :use-circling #f
+    :use-pacing #f
+    :walk-anim 3
+    :turn-anim 13
+    :run-anim 5
+    :taunt-anim 12
+    :run-travel-speed (meters 6)
+    :run-acceleration (meters 1)
+    :run-turning-acceleration (meters 50)
+    :walk-travel-speed (meters 3)
+    :walk-acceleration (meters 1)
+    :walk-turning-acceleration (meters 25)
+    :maximum-rotation-rate (degrees 2880)
+    :notice-nav-radius (meters 2)
+    :frustration-distance (meters 8)
+    :frustration-time (seconds 4)
+    :blocked-time (seconds 0.3)
+    :circle-dist-lo 20480.0
+    :circle-dist-hi 61440.0
+    :nav-mesh #f
+    )
+  )
+
+(set! (-> *babak-enemy-nav-enemy-info* fact-defaults) *fact-info-enemy-defaults*)
+
+(defbehavior babak-enemy-play-win-anim babak-enemy ((speed float))
+  (ja-channel-push! 1 (seconds 0.1))
+  (ja-no-eval :group! babak-enemy-win-ja :num! (seek! (ja-aframe 68.0 0) speed) :frame-num 0.0)
+  (until (ja-done? 0)
+    (suspend)
+    (ja :num! (seek! (ja-aframe 68.0 0) speed))
+    )
+  (none)
+  )
+
+(defstate active (babak-enemy)
+  :virtual #t
+  :code (behavior ()
+    (when (ja-group? babak-enemy-give-up-hop-ja)
+      (ja-channel-push! 1 (seconds 0.15))
+      (ja-no-eval :group! babak-enemy-walk-ja :num! (seek!) :frame-num (ja-aframe 12.0 0))
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      )
+    (let ((code (-> (find-parent-state) code)))
+      (if code
+          (code)
+          )
+      )
+    )
+  )
+
+(defstate hostile (babak-enemy)
+  :virtual #t
+  :code (behavior ()
+    (let ((anim-speed (rnd-float-range self 0.9 1.1)))
+      (cond
+        ((ja-group? babak-enemy-jump-land-ja)
+         (ja-no-eval :num! (seek!))
+         (ja-channel-push! 1 (seconds 0.17))
+         (ja-no-eval :group! (-> self draw art-group data (-> self enemy-info hostile-anim))
+                     :num! (seek! max anim-speed)
+                     :frame-num 0.0
+                     )
+         (until (ja-done? 0)
+           (ja-blend-eval)
+           (suspend)
+           (ja :num! (seek! max anim-speed))
+           )
+         )
+        (else
+          (ja-channel-push! 1 (seconds 0.2))
+          (ja :group! (-> self draw art-group data (-> self enemy-info hostile-anim)))
+          (ja :num-func num-func-identity :frame-num 0.0)
+          )
+        )
+      (until #f
+        (suspend)
+        (ja :num! (loop! anim-speed))
+        )
+      )
+    #f
+    )
+  )
+
+(defstate stare (babak-enemy)
+  :virtual #t
+  :code (behavior ()
+    (ja-channel-push! 1 (seconds 0.1))
+    (let ((anim-speed (rnd-float-range self 0.8 1.2)))
+      (when (rnd-chance? self 0.5)
+        (babak-enemy-play-win-anim anim-speed)
+        )
+      (until #f
+        (when (not (pointing-toward-focus? self 2730.6667 #t))
+          (logior! (-> self enemy-flags) (enemy-flag ef38))
+          (ja-no-eval :num! (loop!))
+          (ja-channel-push! 1 (seconds 0.2))
+          (ja :group! babak-enemy-turn-ja)
+          (ja :num-func num-func-identity :frame-num 0.0)
+          (until (pointing-toward-focus? self 1820.4445 #t)
+            (ja-blend-eval)
+            (suspend)
+            (ja :num! (loop! 0.75))
+            )
+          (logclear! (-> self enemy-flags) (enemy-flag ef38))
+          )
+        (if (not (ja-group? babak-enemy-idle-ja))
+            (ja-channel-push! 1 (seconds 0.2))
+            )
+        (ja-no-eval :group! babak-enemy-idle-ja :num! (seek! max anim-speed) :frame-num 0.0)
+        (until (ja-done? 0)
+          (suspend)
+          (ja :num! (seek! max anim-speed))
+          )
+        (when (rnd-chance? self 0.3)
+          (babak-enemy-play-win-anim anim-speed)
+          )
+        )
+      )
+    #f
+    )
+  )
+
+(defstate stop-chase (babak-enemy)
+  :virtual #t
+  :code (behavior ()
+    (ja-channel-push! 1 (seconds 0.15))
+    (when (pointing-toward-focus? self 12743.111 #f)
+      (ja-no-eval :group! babak-enemy-give-up-ja :num! (seek!) :frame-num 0.0)
+      (until (ja-done? 0)
+        (suspend)
+        (ja :num! (seek!))
+        )
+      )
+    (ja-no-eval :group! babak-enemy-give-up-hop-ja :num! (seek!) :frame-num 0.0)
+    (until (ja-done? 0)
+      (suspend)
+      (ja :num! (seek!))
+      )
+    (ja-channel-push! 1 (seconds 0.2))
+    (ja :group! (-> self draw art-group data (-> self enemy-info walk-anim)))
+    (ja :num-func num-func-identity :frame-num 0.0)
+    (let ((anim-speed (rnd-float-range self 0.8 1.2)))
+      (until #f
+        (suspend)
+        (ja :num! (loop! anim-speed))
+        )
+      )
+    #f
+    )
+  )
+
+(defmethod init-enemy-collision! ((this babak-enemy))
+  "Typical place to construct collision shapes"
+  (let ((cshape (new 'process 'collide-shape-moving this (collide-list-enum usually-hit-by-player))))
+    (set! (-> cshape dynam) (copy *standard-dynamics* 'process))
+    (set! (-> cshape reaction) cshape-reaction-default)
+    (set! (-> cshape no-reaction)
+          (the-as (function collide-shape-moving collide-query vector vector object) nothing)
+          )
+    (let ((body-group (new 'process 'collide-shape-prim-group cshape (the-as uint 3) 0)))
+      (set! (-> cshape total-prims) (the-as uint 4))
+      (set! (-> body-group prim-core collide-as) (collide-spec enemy))
+      (set! (-> body-group prim-core collide-with)
+            (collide-spec backgnd jak bot crate obstacle hit-by-others-list player-list)
+            )
+      (set! (-> body-group prim-core action) (collide-action solid deadly no-standon))
+      (set-vector! (-> body-group local-sphere) 0.0 8192.0 0.0 12288.0)
+      (set! (-> cshape root-prim) body-group)
+      )
+    (let ((legs-prim (new 'process 'collide-shape-prim-sphere cshape (the-as uint 0))))
+      (set! (-> legs-prim prim-core collide-as) (collide-spec enemy))
+      (set! (-> legs-prim prim-core collide-with)
+            (collide-spec backgnd jak bot crate obstacle hit-by-others-list player-list)
+            )
+      (set! (-> legs-prim prim-core action) (collide-action solid deadly no-standon))
+      (set-vector! (-> legs-prim local-sphere) 0.0 4096.0 0.0 3072.0)
+      )
+    (let ((torso-prim (new 'process 'collide-shape-prim-sphere cshape (the-as uint 0))))
+      (set! (-> torso-prim prim-core collide-as) (collide-spec enemy))
+      (set! (-> torso-prim prim-core collide-with)
+            (collide-spec backgnd jak bot crate obstacle hit-by-others-list player-list)
+            )
+      (set! (-> torso-prim prim-core action) (collide-action solid deadly no-standon))
+      (set-vector! (-> torso-prim local-sphere) 0.0 9830.4 0.0 3072.0)
+      )
+    ;; the attack sphere rides on the head joint
+    (let ((head-prim (new 'process 'collide-shape-prim-sphere cshape (the-as uint 0))))
+      (set! (-> head-prim prim-core collide-as) (collide-spec enemy))
+      (set! (-> head-prim prim-core collide-with) (collide-spec jak bot player-list))
+      (set! (-> head-prim prim-core action) (collide-action deadly))
+      (set! (-> head-prim transform-index) 6)
+      (set-vector! (-> head-prim local-sphere) 0.0 0.0 0.0 2048.0)
+      )
+    (set! (-> cshape nav-radius) 6144.0)
+    (let ((root-prim (-> cshape root-prim)))
+      (set! (-> cshape backup-collide-as) (-> root-prim prim-core collide-as))
+      (set! (-> cshape backup-collide-with) (-> root-prim prim-core collide-with))
+      )
+    (set! (-> cshape max-iteration-count) (the-as uint 2))
+    (set! (-> this root) cshape)
+    )
+  0
+  (none)
+  )
+
+(defmethod init-enemy! ((this babak-enemy))
+  "Typical place for shared init code. Runs from entity or process style init."
+  (initialize-skeleton this *babak-enemy-sg* '())
+  (setup-enemy! this *babak-enemy-nav-enemy-info*)
+  (logior! (-> this skel status) (joint-control-status sync-math))
+  (none)
+  )

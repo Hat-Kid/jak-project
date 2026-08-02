@@ -220,7 +220,10 @@
                    (eq? file-name bsp-file-name)
                    )
                ;; copy art files
-               (set! objs (cons file-name objs))))
+               (when (neq? file-name "babak-enemy-ag.go")
+                 (set! objs (cons file-name objs))
+                 )
+               ))
             ;; Update the map so this file isn't processed again
             (hash-table-set! *file-entry-map* file-name #f)))
         (set! files (cdr files)))

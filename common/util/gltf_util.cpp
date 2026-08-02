@@ -143,7 +143,8 @@ std::vector<math::Matrix4f> extract_mat4(const tinygltf::Model& model, int acces
 }
 
 JointsAndWeights convert_per_vertex_data(const math::Vector4f& weights,
-                                         const math::Vector<u8, 4>& joints) {
+                                         const math::Vector<u8, 4>& joints,
+                                         int extra_joint_offset) {
   int discard_idx = -1;
   float discard_weight = 100;
   for (int i = 0; i < 4; i++) {
@@ -160,7 +161,7 @@ JointsAndWeights convert_per_vertex_data(const math::Vector4f& weights,
     if (src == discard_idx) {
       continue;
     }
-    ret.joints[dst] = joints[src] + 1;
+    ret.joints[dst] = joints[src] + 1 + extra_joint_offset;
     ret.weights[dst] = weights[src];
     sum += ret.weights[dst];
     dst++;
@@ -172,7 +173,8 @@ JointsAndWeights convert_per_vertex_data(const math::Vector4f& weights,
 
 std::vector<JointsAndWeights> extract_and_flatten_joints_and_weights(
     const tinygltf::Model& model,
-    const tinygltf::Primitive& prim) {
+    const tinygltf::Primitive& prim,
+    int extra_joint_offset) {
   auto weights =
       extract_vec<float, 4>(model, prim.attributes.at("WEIGHTS_0"), TINYGLTF_COMPONENT_TYPE_FLOAT);
   auto joints = extract_vec<u8, 4>(model, prim.attributes.at("JOINTS_0"),
@@ -180,7 +182,7 @@ std::vector<JointsAndWeights> extract_and_flatten_joints_and_weights(
   std::vector<JointsAndWeights> ret;
   ASSERT(weights.size() == joints.size());
   for (size_t i = 0; i < weights.size(); i++) {
-    ret.push_back(convert_per_vertex_data(weights[i], joints[i]));
+    ret.push_back(convert_per_vertex_data(weights[i], joints[i], extra_joint_offset));
   }
   return ret;
 }

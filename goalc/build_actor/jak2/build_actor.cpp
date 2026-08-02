@@ -128,9 +128,9 @@ ArtJointAnim::ArtJointAnim(const anim::CompressedAnim& anim, const std::vector<J
     : frames(anim) {
   this->name = anim.name;
   length = joints.size();
-  speed = 1.0f;
-  artist_base = 0.0f;
-  artist_step = 1.0f;
+  speed = anim::playback_speed_for_framerate(anim.framerate);
+  artist_base = anim.artist_base;
+  artist_step = anim::artist_step_for_framerate(anim.framerate, anim.artist_frame_rate);
   if (!anim.master_art_group_name.empty()) {
     master_art_group_name = anim.master_art_group_name;
   } else {

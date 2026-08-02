@@ -1235,6 +1235,10 @@ level_tools::UncompressedJointAnim decompress_anim(const level_tools::ArtJointAn
   level_tools::UncompressedJointAnim out;
   out.name = art_anim.name;
   out.framerate = art_anim.speed > 0.f ? art_anim.speed * 60.f : 30.f;
+  out.artist_base = art_anim.artist_base;
+  out.artist_frame_rate = (art_anim.speed > 0.f && art_anim.artist_step > 0.f)
+                              ? art_anim.speed * art_anim.artist_step * 60.f
+                              : 60.f;
   out.frames = total_frames;
   out.joints.resize(2 + num_joints);
 
@@ -1448,6 +1452,14 @@ void add_animation_to_gltf(const level_tools::UncompressedJointAnim& anim,
 
   auto& gltf_anim = model.animations.emplace_back();
   gltf_anim.name = anim.name;
+  // ja-aframe data. key times already encode the sample rate, but these two can't be recovered
+  // from the samples, so hand them to build-actor through extras.
+  {
+    tinygltf::Value::Object extras;
+    extras["artist-base"] = tinygltf::Value(double(anim.artist_base));
+    extras["artist-frame-rate"] = tinygltf::Value(double(anim.artist_frame_rate));
+    gltf_anim.extras = tinygltf::Value(extras);
+  }
 
   std::vector<float> times(anim.frames);
   for (int i = 0; i < anim.frames; i++)
