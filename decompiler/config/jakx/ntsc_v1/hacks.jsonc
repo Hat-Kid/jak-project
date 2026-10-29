@@ -35,7 +35,8 @@
     "memcpy",
     "dma-count-until-done",
     "blerc-a-fragment",
-    "get-current-room-name-and-info"
+    "get-current-room-name-and-info",
+    "fw-test-2"
   ],
   "pair_functions_by_name": [
     "update-time-of-day",

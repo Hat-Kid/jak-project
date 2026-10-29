@@ -446,5 +446,14 @@
     [64, "(function process-drawable object)"],
     [68, "(function process-drawable handle)"]
   ],
-  "target-death": [[1, "(function continue-point target)"]]
+  "target-death": [[1, "(function continue-point target)"]],
+  "task-control": [
+    [31, "(function game-task-node-info object object)"],
+    [32, "(function game-task-node-info object)"],
+    [43, "(function pair symbol)"]
+  ],
+  "scene": [
+    [3, "(function symbol :behavior scene-player)"],
+    [4, "(function symbol :behavior scene-player)"]
+  ]
 }

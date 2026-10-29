@@ -411,7 +411,9 @@
     "(method 3 game-save)",
     // mem-buffer
     "(method 45 mem-buffer)",
-    "(method 28 mem-buffer)"
+    "(method 28 mem-buffer)",
+    // udp-layer
+    "fw-test-2"
   ],
   "skip_compile_states": {}
 }

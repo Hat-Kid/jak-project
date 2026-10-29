@@ -40,12 +40,12 @@
   ],
   "sprite": [["L52", "dma-packet"]],
   "headset-h": [
-    ["L8", "(pointer uint16)", 256],
-    ["L7", "(pointer uint16)", 256],
-    ["L6", "(pointer uint8)", 100],
-    ["L5", "(pointer uint8)", 160],
-    ["L4", "(pointer uint8)", 160],
-    ["L3", "(pointer int8)", 4]
+    ["L8", "(pointer int16)", 1024],
+    ["L7", "(pointer int16)", 1024],
+    ["L6", "(pointer uint8)", 400],
+    ["L5", "(pointer int16)", 320],
+    ["L4", "(pointer int16)", 320],
+    ["L3", "(pointer int32)", 4]
   ],
   "kras-part": [["L137", "(pointer rgba)", 8]],
   "vehicle-h": [
@@ -851,10 +851,10 @@
   ],
   "udp-layer": [["L123", "(pointer uint32)", 256]],
   "headset": [
-    ["L167", "(pointer uint32)", 200],
-    ["L168", "(pointer uint32)", 200],
-    ["L169", "(pointer uint32)", 200],
-    ["L170", "(pointer uint32)", 200]
+    ["L167", "(pointer uint8)", 800],
+    ["L168", "(pointer uint8)", 800],
+    ["L169", "(pointer uint8)", 800],
+    ["L170", "(pointer uint8)", 800]
   ],
   "net-aux-voice": [
     ["L115", "(pointer int32)", 16],
@@ -863,5 +863,13 @@
   "mem-buffer": [
     ["L10", "vector"],
     ["L9", "vector"]
+  ],
+  "task-control": [["L613", "uint64", true]],
+  "scene-actor": [
+    ["L122", "cloth-params"],
+    ["L123", "cloth-params"],
+    ["L124", "cloth-params"],
+    ["L126", "cloth-params"],
+    ["L127", "cloth-params"]
   ]
 }

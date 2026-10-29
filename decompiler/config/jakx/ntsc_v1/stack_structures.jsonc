@@ -323,5 +323,18 @@
     [32, "vector"]
   ],
   "debris-group-init-by-other": [[16, "vector"]],
-  "add-debug-flat-triangle-noclip": [[16, ["inline-array", "vector4w", 9]]]
+  "add-debug-flat-triangle-noclip": [[16, ["inline-array", "vector4w", 9]]],
+  "(method 10 game-task-node-info)": [[16, ["array", "game-task-node", 64]]],
+  "(method 14 udp-layer)": [[16, ["inline-array", "mem-buffer", 2]]],
+  "(method 15 udp-layer)": [[16, ["inline-array", "mem-buffer", 2]]],
+  "(method 13 udp-layer)": [
+    [16, ["inline-array", "mem-buffer", 1]],
+    [32, ["inline-array", "mem-buffer", 1]]
+  ],
+  "(method 18 udp-layer)": [[16, ["inline-array", "mem-buffer", 1]]],
+  "fw-test-2": [
+    [16, ["inline-array", "mem-buffer", 1]],
+    [32, ["inline-array", "mem-buffer", 1]]
+  ],
+  "(enter cam-vehicle)": [[16, ["inline-array", "vector", 1]]]
 }

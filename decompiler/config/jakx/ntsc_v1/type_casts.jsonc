@@ -1483,7 +1483,11 @@
     [16, "s5", "process-drawable"],
     [21, "s5", "process-drawable"]
   ],
-  "(exit cam-vehicle-shot)": [[45, "v1", "vehicle"]],
+  "(exit cam-vehicle-shot)": [
+    [45, "v1", "vehicle"],
+    [15, "v0", "camera-master"],
+    [86, "v0", "camera-master"]
+  ],
   "vehicle-handle->net-player": [[18, "v1", "wvehicle"]],
   "(event target-continue)": [[18, "a0", "process"]],
   "next-continue": [
@@ -1725,5 +1729,219 @@
     [558, "v0", "camera-combiner"],
     [564, "v0", "camera-combiner"]
   ],
-  "net-mgr-notify-connect": [[22, "s4", "connection"]]
+  "net-mgr-notify-connect": [[22, "s4", "connection"]],
+  "play-task": [
+    [77, "v1", "pair"],
+    [114, "v1", "pair"]
+  ],
+  "(anon-function 43 task-control)": [
+    [3, "s4", "pair"],
+    [4, "s4", "pair"],
+    [6, "s4", "pair"],
+    [9, "s4", "pair"],
+    [5, "a0", "pair"],
+    [7, "a0", "pair"],
+    [8, "a0", "pair"],
+    [10, "a0", "pair"],
+    [11, "a0", "pair"],
+    [12, "a0", "pair"],
+    [13, "v1", "symbol"],
+    [20, "s4", "pair"],
+    [21, "a0", "pair"],
+    [24, "v1", "level-load-info"],
+    [28, "v1", "level-load-info"],
+    [33, "gp", "pair"],
+    [32, "gp", "pair"]
+  ],
+  "scene-player-init": [
+    [37, "s5", "(array scene)"],
+    [43, "s5", "(array scene)"]
+  ],
+  "(code wait scene-player)": [
+    [45, "v0", "target"],
+    [53, "v0", "target"],
+    [88, "v0", "target"],
+    [127, "v0", "target"],
+    [146, "v0", "target"],
+    [325, "v0", "target"],
+    [463, "v0", "target"],
+    [62, "v0", "target"]
+  ],
+  "(code release scene-player)": [[516, "v0", "target"]],
+  "(event play-anim scene-player)": [[11, "t9", "(function process object)"]],
+  "(method 41 mem-buffer)": [
+    [6, "v0", "float"],
+    [13, "v0", "float"],
+    [20, "v0", "float"]
+  ],
+  "(method 25 headset)": [
+    [202, "a0", "(pointer int8)"],
+    [140, "a0", "(pointer int8)"]
+  ],
+  "(method 19 udp-layer)": [
+    [66, "a0", "(pointer int8)"],
+    [125, "a0", "(pointer int8)"]
+  ],
+  "process-drawable-draw-subtitles": [[26, "v0", "(array subtitle-range)"]],
+  "(method 55 scene-player)": [
+    [102, "s1", "process-drawable"],
+    [114, "s1", "process-drawable"],
+    [122, "s1", "process-drawable"],
+    [231, "s1", "process-drawable"],
+    [237, "s1", "process-drawable"],
+    [240, "s1", "process-drawable"],
+    [234, "s1", "process-drawable"],
+    [411, "s0", "pair"],
+    [416, "v1", "pair"],
+    [418, "v1", "pair"],
+    [419, "v1", "pair"],
+    [442, "v1", "pair"],
+    [443, "v1", "pair"],
+    [466, "s0", "pair"],
+    [470, "s2", "pair"],
+    [336, "v1", "pair"],
+    [338, "v1", "pair"],
+    [339, "v1", "pair"],
+    [367, "v1", "pair"],
+    [368, "v1", "pair"],
+    [395, "s0", "pair"],
+    [252, "v1", "pair"],
+    [254, "v1", "pair"],
+    [255, "v1", "pair"],
+    [278, "v1", "pair"],
+    [279, "v1", "pair"],
+    [291, "s0", "pair"],
+    [183, "v1", "pair"],
+    [185, "v1", "pair"],
+    [186, "v1", "pair"],
+    [209, "v1", "pair"],
+    [210, "v1", "pair"],
+    [222, "s0", "pair"],
+    [17, "s0", "pair"],
+    [18, "s0", "pair"],
+    [19, "v1", "pair"],
+    [41, "s0", "pair"],
+    [42, "v1", "pair"],
+    [54, "s1", "pair"],
+    [469, "s2", "pair"],
+    [394, "s0", "pair"],
+    [290, "s0", "pair"],
+    [221, "s0", "pair"],
+    [53, "s1", "pair"]
+  ],
+  "(method 9 scene-actor)": [
+    [177, "s3", "skeleton-group"],
+    [284, "a0", "process-drawable"],
+    [310, "a0", "process-drawable"],
+    [314, "v1", "process-drawable"],
+    [318, "a0", "process-drawable"],
+    [394, "a0", "process-drawable"],
+    [398, "v1", "manipy"],
+    [406, "v1", "manipy"],
+    [412, "v1", "manipy"],
+    [427, "v1", "manipy"],
+    [433, "v1", "manipy"],
+    [600, "a0", "process-drawable"],
+    [604, "v1", "process-drawable"],
+    [608, "a0", "process-drawable"]
+  ],
+  "(code play-anim scene-player)": [[223, "v0", "target"]],
+  "(post play-anim scene-player)": [
+    [56, "gp", "pair"],
+    [214, "v1", "process-drawable"],
+    [220, "v1", "process-drawable"],
+    [222, "v1", "process-drawable"],
+    [265, "v1", "process-drawable"],
+    [277, "v1", "process-drawable"],
+    [284, "v1", "process-drawable"],
+    [287, "v1", "process-drawable"],
+    [328, "v1", "process-drawable"],
+    [335, "v1", "process-drawable"],
+    [55, "gp", "pair"],
+    [588, "v0", "sound-rpc-set-param"],
+    [713, "v0", "sound-rpc-set-param"]
+  ],
+  "(trans play-anim scene-player)": [
+    [57, "v0", "target"],
+    [71, "v1", "process-drawable"],
+    [78, "v1", "process-drawable"]
+  ],
+  "driver-trans": [
+    [13, "s5", "process-drawable"],
+    [18, "s5", "vehicle"],
+    [23, "s5", "vehicle"],
+    [30, "s5", "vehicle"],
+    [34, "s5", "vehicle"],
+    [143, "s5", "vehicle"],
+    [148, "a0", "vehicle"]
+  ],
+  "(method 66 driver)": [
+    [73, "gp", "vehicle"],
+    [85, "gp", "vehicle"]
+  ],
+  "(method 9 joint-mod-head)": [[3, "v1", "driver"]],
+  "(code intro driver)": [
+    [43, "v1", "art-joint-anim"],
+    [108, "v1", "art-joint-anim"]
+  ],
+  "(post cam-vehicle-shot)": [
+    [2, "v0", "camera-master"],
+    [122, "v0", "camera-master"],
+    [188, "v0", "camera-master"],
+    [248, "v0", "camera-master"]
+  ],
+  "(code cam-fixed)": [[6, "v0", "camera-master"]],
+  "cam-standoff-calc-trans": [[5, "v0", "camera-master"]],
+  "(trans cam-standoff)": [[2, "v0", "camera-master"]],
+  "(enter cam-standoff-read-entity)": [[25, "v0", "camera-master"]],
+  "(enter cam-spline)": [[61, "v0", "vector"]],
+  "(trans cam-spline)": [[2, "v0", "camera-master"]],
+  "(code cam-decel)": [
+    [9, "v0", "camera-master"],
+    [17, "v0", "camera-master"],
+    [24, "v0", "camera-master"],
+    [31, "v0", "camera-master"],
+    [34, "v0", "camera-master"],
+    [41, "v0", "camera-master"],
+    [47, "v0", "camera-master"],
+    [54, "v0", "camera-master"],
+    [64, "v0", "camera-master"],
+    [72, "v0", "camera-master"],
+    [75, "v0", "camera-master"],
+    [83, "v0", "camera-master"],
+    [90, "v0", "camera-master"],
+    [93, "v0", "camera-master"],
+    [99, "v0", "camera-master"],
+    [102, "v0", "camera-master"],
+    [106, "v0", "camera-master"]
+  ],
+  "(event cam-vehicle)": [
+    [6, "v0", "camera-master"],
+    [12, "v0", "camera-master"],
+    [18, "v0", "camera-master"],
+    [26, "v0", "camera-master"],
+    [34, "v0", "camera-master"]
+  ],
+  "(enter cam-vehicle)": [
+    [3, "v0", "camera-master"],
+    [9, "v0", "camera-master"],
+    [15, "v0", "camera-master"],
+    [22, "v0", "camera-master"],
+    [30, "v0", "camera-master"],
+    [44, "v0", "camera-master"],
+    [47, "v0", "camera-master"]
+  ],
+  "(code cam-vehicle-crash)": [
+    [18, "v1", "process-drawable"],
+    [43, "v0", "camera-master"],
+    [59, "v0", "camera-master"]
+  ],
+  "(code cam-vehicle-shot)": [[35, "v1", "process-drawable"]],
+  "(method 0 viewport-array)": [[14, "gp", "viewport-array"]],
+  "init-hflip-zbuf": [[[15, 19], "v1", "dma-packet"]],
+  "hflip-zbuf-init": [
+    [[3, 8], "a2", "dma-packet"],
+    [[13, 16], "a2", "gs-gif-tag"]
+  ],
+  "hflip-z-buf": [[[8, 13], "a0", "dma-packet"]]
 }
