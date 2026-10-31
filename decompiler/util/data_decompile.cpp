@@ -1098,9 +1098,9 @@ const std::unordered_map<
               }},
              {"vehicle-daxter-info",
               {
-                  {"chassis-seats", ArrayFieldDecompMeta(TypeSpec("vector"), 16)},
-                  {"trunk-seats", ArrayFieldDecompMeta(TypeSpec("vector"), 16)},
-                  {"roof-seats", ArrayFieldDecompMeta(TypeSpec("vector"), 16)},
+                  {"chassis-seats", ArrayFieldDecompMeta(TypeSpec("vehicle-seat-info"), 16)},
+                  {"trunk-seats", ArrayFieldDecompMeta(TypeSpec("vehicle-seat-info"), 16)},
+                  {"roof-seats", ArrayFieldDecompMeta(TypeSpec("vehicle-seat-info"), 16)},
               }},
              {"vehicle-hardpoint-info",
               {
