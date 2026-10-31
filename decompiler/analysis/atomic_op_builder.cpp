@@ -1647,26 +1647,33 @@ std::unique_ptr<AtomicOp> convert_vector_plus(const Instruction& i0,
                                               const Instruction& i2,
                                               const Instruction& i3,
                                               const Instruction& i4,
-                                              int idx) {
+                                              int idx,
+                                              GameVersion version) {
+  // jak x emits the vmove after the two loads
+  const bool vmove_last = version >= GameVersion::JakX;
+  const Instruction& vmove = vmove_last ? i2 : i0;
+  const Instruction& load1 = vmove_last ? i0 : i1;
+  const Instruction& load2 = vmove_last ? i1 : i2;
+
   // vmove.w vf6, vf0
-  if (i0.kind != InstructionKind::VMOVE || i0.get_src(0).get_reg() != make_vf(0) ||
-      i0.get_dst(0).get_reg() != make_vf(6) || i0.cop2_dest != 1) {
+  if (vmove.kind != InstructionKind::VMOVE || vmove.get_src(0).get_reg() != make_vf(0) ||
+      vmove.get_dst(0).get_reg() != make_vf(6) || vmove.cop2_dest != 1) {
     return nullptr;
   }
 
   // lqc2 vf4, 0(a1) (src1)
-  if (i1.kind != InstructionKind::LQC2 || i1.get_dst(0).get_reg() != make_vf(4) ||
-      !i1.get_src(0).is_imm(0)) {
+  if (load1.kind != InstructionKind::LQC2 || load1.get_dst(0).get_reg() != make_vf(4) ||
+      !load1.get_src(0).is_imm(0)) {
     return nullptr;
   }
-  Register src1 = i1.get_src(1).get_reg();
+  Register src1 = load1.get_src(1).get_reg();
 
   // lqc2 vf5, 0(a2) (src2)
-  if (i2.kind != InstructionKind::LQC2 || i2.get_dst(0).get_reg() != make_vf(5) ||
-      !i2.get_src(0).is_imm(0)) {
+  if (load2.kind != InstructionKind::LQC2 || load2.get_dst(0).get_reg() != make_vf(5) ||
+      !load2.get_src(0).is_imm(0)) {
     return nullptr;
   }
-  Register src2 = i2.get_src(1).get_reg();
+  Register src2 = load2.get_src(1).get_reg();
 
   // vadd.xyz vf6, vf4, vf5
   if (i3.kind != InstructionKind::VADD || i3.get_dst(0).get_reg() != make_vf(6) ||
@@ -1873,7 +1880,7 @@ std::unique_ptr<AtomicOp> convert_5(const Instruction& i0,
     return std::make_unique<SpecialOp>(SpecialOp::Kind::SUSPEND, idx);
   }
 
-  auto as_vector_plus = convert_vector_plus(i0, i1, i2, i3, i4, idx);
+  auto as_vector_plus = convert_vector_plus(i0, i1, i2, i3, i4, idx, version);
   if (as_vector_plus) {
     return as_vector_plus;
   }
@@ -2024,7 +2031,7 @@ std::unique_ptr<AtomicOp> convert_vector_length_squared(const Instruction* instr
 }
 
 std::unique_ptr<AtomicOp> convert_7(const Instruction* instrs, int idx, GameVersion version) {
-  if (version == GameVersion::Jak3) {
+  if (version >= GameVersion::Jak3) {
     auto as_vector_length_squared = convert_vector_length_squared(instrs, idx);
     if (as_vector_length_squared) {
       return as_vector_length_squared;
@@ -2172,7 +2179,7 @@ std::unique_ptr<AtomicOp> convert_8(const Instruction* instrs, int idx, GameVers
     return as_vector_float_plus_times;
   }
 
-  if (version == GameVersion::Jak3) {
+  if (version >= GameVersion::Jak3) {
     auto as_vector_plus_times = convert_vector_plus_times(instrs, idx);
     if (as_vector_plus_times) {
       return as_vector_plus_times;
