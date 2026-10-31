@@ -25,6 +25,17 @@ bool is_signed(const DecompilerTypeSystem& dts, const TP_Type& type) {
 }
 
 /*!
+ * Type of a field extracted from a bitfield. A handle loaded from a field with :handle-type is
+ * typed (handle <type>), and its process field points to that type instead of process.
+ */
+TypeSpec bitfield_field_type(const TypeSpec& bitfield_type, const BitField& field) {
+  if (bitfield_type.base_type() == "handle" && bitfield_type.arg_count() == 1 &&
+      field.name() == "process") {
+    return TypeSpec("pointer", {bitfield_type.get_single_arg()});
+  }
+  return field.type();
+}
+/*!
  * Set up an instruction which sets its result to an ambiguous deref.
  * The possibilities are specified in FieldReverseMultiLookupOutput.
  */
@@ -456,7 +467,8 @@ void types2_for_right_shift(types2::Type& type_out,
       int size = shift_size - expr.get_arg(1).get_int();
       int start_bit = shift_size - size;
       auto field = find_field(dts.ts, bf, start_bit, size, is_unsigned);
-      type_out.type = TP_Type::make_from_ts(coerce_to_reg_type(field.type()));
+      type_out.type = TP_Type::make_from_ts(
+          coerce_to_reg_type(bitfield_field_type(arg0_type.typespec(), field)));
       return;
     }
   }
@@ -480,7 +492,8 @@ void types2_for_right_shift(types2::Type& type_out,
     auto as_bitfield = dynamic_cast<BitFieldType*>(type);
     ASSERT(as_bitfield);
     auto field = find_field(dts.ts, as_bitfield, start_bit, size, is_unsigned);
-    type_out.type = TP_Type::make_from_ts(coerce_to_reg_type(field.type()));
+    type_out.type = TP_Type::make_from_ts(
+        coerce_to_reg_type(bitfield_field_type(arg0_type.get_bitfield_type(), field)));
     return;
   }
 
@@ -1808,7 +1821,8 @@ void AsmOp::propagate_types2(types2::Instruction& instr,
         // see if we can find a field (throws if we can't)
         auto field = find_field(dts.ts, as_bitfield, 0, 32, {});
         // this is a complete extraction, can set the type as the result.
-        out[m_dst->reg()]->type = TP_Type::make_from_ts(field.type());
+        out[m_dst->reg()]->type =
+            TP_Type::make_from_ts(bitfield_field_type(src_type->type->typespec(), field));
         return;
       }
     }
@@ -1825,7 +1839,8 @@ void AsmOp::propagate_types2(types2::Instruction& instr,
         int offset = sa;
         int size = 32 - offset;
         auto field = find_field(dts.ts, as_bitfield, offset, size, {});
-        out[m_dst->reg()]->type = TP_Type::make_from_ts(coerce_to_reg_type(field.type()));
+        out[m_dst->reg()]->type = TP_Type::make_from_ts(
+            coerce_to_reg_type(bitfield_field_type(src_type->type->typespec(), field)));
         return;
       }
       if (m_instr.src[1].get_imm() > 0 &&
